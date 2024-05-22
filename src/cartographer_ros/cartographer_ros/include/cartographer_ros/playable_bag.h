@@ -19,13 +19,13 @@
 
 #include <functional>
 #include <queue>
-
-#include "cartographer_ros_msgs/msg/bagfile_progress.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rosbag2_cpp/reader.hpp>
 #include <rosbag2_cpp/readers/sequential_reader.hpp>
 #include <rosbag2_cpp/writer.hpp>
 #include <rosbag2_cpp/writers/sequential_writer.hpp>
+
+#include "cartographer_ros_msgs/msg/bagfile_progress.hpp"
 #include "tf2_ros/buffer.h"
 
 namespace cartographer_ros {
@@ -35,16 +35,15 @@ class PlayableBag {
   // Handles messages early, i.e. when they are about to enter the buffer.
   // Returns a boolean indicating whether the message should enter the buffer.
   using FilteringEarlyMessageHandler =
-      std::function<bool /* forward_message_to_buffer */ (
-          std::shared_ptr<rosbag2_storage::SerializedBagMessage>)>;
+      std::function<bool /* forward_message_to_buffer */ (std::shared_ptr<rosbag2_storage::SerializedBagMessage>)>;
 
-  PlayableBag(const std::string& bag_filename, int bag_id,
+  PlayableBag(const std::string& bag_filename,
+              int bag_id,
               rclcpp::Duration buffer_delay,
               FilteringEarlyMessageHandler filtering_early_message_handler);
 
   rclcpp::Time PeekMessageTime() const;
-  rosbag2_storage::SerializedBagMessage GetNextMessage(
-      cartographer_ros_msgs::msg::BagfileProgress* progress);
+  rosbag2_storage::SerializedBagMessage GetNextMessage(cartographer_ros_msgs::msg::BagfileProgress* progress);
   bool IsMessageAvailable() const;
   std::tuple<rclcpp::Time, rclcpp::Time> GetBeginEndTime() const;
 
@@ -65,7 +64,7 @@ class PlayableBag {
   double duration_in_seconds_;
   int message_counter_;
   std::deque<rosbag2_storage::SerializedBagMessage> buffered_messages_;
-  const rclcpp::Duration  buffer_delay_;
+  const rclcpp::Duration buffer_delay_;
   FilteringEarlyMessageHandler filtering_early_message_handler_;
   std::set<std::string> topics_;
 };
@@ -105,8 +104,7 @@ class PlayableBagMultiplexer {
   double progress_pub_interval_;
 
   std::vector<PlayableBag> playable_bags_;
-  std::priority_queue<BagMessageItem, std::vector<BagMessageItem>,
-                      BagMessageItem::TimestampIsGreater>
+  std::priority_queue<BagMessageItem, std::vector<BagMessageItem>, BagMessageItem::TimestampIsGreater>
       next_message_queue_;
   std::set<std::string> topics_;
 };
