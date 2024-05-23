@@ -190,7 +190,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory, rclcpp::Node::
 
   std::map<std::pair<int /* bag_index */, std::string>, cartographer::mapping::TrajectoryBuilderInterface::SensorId>
       bag_topic_to_sensor_id;
-  PlayableBagMultiplexer playable_bag_multiplexer(cartographer_offline_node);
+  PlayableBagMultiplexer playable_bag_multiplexer(cartographer_offline_node);  // 读包工具初始化
   for (size_t current_bag_index = 0; current_bag_index < bag_filenames.size(); ++current_bag_index) {
     const std::string& bag_filename = bag_filenames.at(current_bag_index);
     if (!rclcpp::ok()) {
@@ -208,6 +208,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory, rclcpp::Node::
     }
 
     auto serializer = rclcpp::Serialization<tf2_msgs::msg::TFMessage>();
+    /// 添加bag
     playable_bag_multiplexer.AddPlayableBag(PlayableBag(
         bag_filename,
         current_bag_index,
@@ -276,6 +277,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory, rclcpp::Node::
       // If no bags were loaded, we cannot peek the time of first message.
       playable_bag_multiplexer.IsMessageAvailable() ? playable_bag_multiplexer.PeekMessageTime() : rclcpp::Time();
 
+  /// 定义消息类型
   auto laser_scan_serializer = rclcpp::Serialization<sensor_msgs::msg::LaserScan>();
   auto multi_echo_laser_scan_serializer = rclcpp::Serialization<sensor_msgs::msg::MultiEchoLaserScan>();
   auto pcl2_serializer = rclcpp::Serialization<sensor_msgs::msg::PointCloud2>();
@@ -288,7 +290,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory, rclcpp::Node::
     if (!::rclcpp::ok()) {
       return;
     }
-
+    /// msg tuple 包含多个量
     const auto next_msg_tuple = playable_bag_multiplexer.GetNextMessage();
     const rosbag2_storage::SerializedBagMessage& msg = std::get<0>(next_msg_tuple);
     const int bag_index = std::get<1>(next_msg_tuple);
@@ -327,7 +329,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory, rclcpp::Node::
 
     if (it != bag_topic_to_sensor_id.end()) {
       const std::string& sensor_id = it->second.id;
-
+      /// 多种消息处理输入到Node中
       if (topic_type == "sensor_msgs/msg/LaserScan") {
         rclcpp::SerializedMessage serialized_msg(*msg.serialized_data);
         sensor_msgs::msg::LaserScan::SharedPtr laser_scan_msg = std::make_shared<sensor_msgs::msg::LaserScan>();

@@ -38,6 +38,7 @@ PlayableBag::PlayableBag(const std::string& bag_filename,
       filtering_early_message_handler_(std::move(filtering_early_message_handler)) {
   LOG(WARNING) << "Opening bag: " << bag_filename;
   bag_reader_->open(bag_filename);
+  /// 获取bag信息
   bag_metadata = bag_reader_->get_metadata();
   duration_in_seconds_ = bag_metadata.duration.count() / 1e9;
   LOG(WARNING) << "duration_in_seconds_: " << duration_in_seconds_;
@@ -45,6 +46,7 @@ PlayableBag::PlayableBag(const std::string& bag_filename,
   LOG(WARNING) << "compression_mode: " << bag_metadata.compression_mode;
   LOG(WARNING) << "compression_format: " << bag_metadata.compression_format;
   AdvanceUntilMessageAvailable();
+  /// 获取bag中包含所有的topic
   for (auto topic_info : bag_metadata.topics_with_message_count) {
     topics_.insert(topic_info.topic_metadata.name);
   }
@@ -83,7 +85,7 @@ rosbag2_storage::SerializedBagMessage PlayableBag::GetNextMessage(
     LOG(INFO) << "Processed " << processed_seconds << " of " << duration_in_seconds_ << " seconds of bag "
               << bag_filename_;
   }
-
+  /// 实时进程更新
   if (progress) {
     progress->current_bagfile_name = bag_filename_;
     progress->current_bagfile_id = bag_id_;
@@ -110,10 +112,12 @@ int PlayableBag::bag_id() const { return bag_id_; }
 
 void PlayableBag::AdvanceOneMessage() {
   CHECK(!finished_);
+  /// 包中没有接下来的信息,将finish标志置true
   if (!bag_reader_->has_next()) {
     finished_ = true;
     return;
   }
+  /// 获取下一bag信息
   auto msg = bag_reader_->read_next();
   if (!filtering_early_message_handler_ || filtering_early_message_handler_(msg)) {
     buffered_messages_.push_back(*msg);
@@ -132,6 +136,7 @@ void PlayableBag::AdvanceUntilMessageAvailable() {
 
 PlayableBagMultiplexer::PlayableBagMultiplexer(rclcpp::Node::SharedPtr node) {
   node_ = node;
+  /// 发布进度信息
   bag_progress_pub_ = node_->create_publisher<cartographer_ros_msgs::msg::BagfileProgress>("bagfile_progress", 10);
   if (!node_->has_parameter("bagfile_progress_pub_interval")) {
     node_->declare_parameter("bagfile_progress_pub_interval", progress_pub_interval_);

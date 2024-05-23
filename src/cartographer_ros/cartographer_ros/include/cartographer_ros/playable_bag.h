@@ -43,30 +43,38 @@ class PlayableBag {
               FilteringEarlyMessageHandler filtering_early_message_handler);
 
   rclcpp::Time PeekMessageTime() const;
+
+  /// @brief 获取msg
+  /// @param progress 读取bag进程数据
   rosbag2_storage::SerializedBagMessage GetNextMessage(cartographer_ros_msgs::msg::BagfileProgress* progress);
   bool IsMessageAvailable() const;
+  /// @brief 返回开始和结束时间
   std::tuple<rclcpp::Time, rclcpp::Time> GetBeginEndTime() const;
-
+  /// @brief 返回该bag id
   int bag_id() const;
+  /// @brief 返回所有的topics
   std::set<std::string> topics() const { return topics_; }
+  /// @brief 获取该bag的总时间
   double duration_in_seconds() const { return duration_in_seconds_; }
+  /// @brief 返回状态
   bool finished() const { return finished_; }
-  rosbag2_storage::BagMetadata bag_metadata;
+
+  rosbag2_storage::BagMetadata bag_metadata;  // 存储bag包的相关信息
 
  private:
   void AdvanceOneMessage();
   void AdvanceUntilMessageAvailable();
 
-  std::unique_ptr<rosbag2_cpp::Reader> bag_reader_;
-  bool finished_;
-  const int bag_id_;
-  const std::string bag_filename_;
+  std::unique_ptr<rosbag2_cpp::Reader> bag_reader_;  // 读取bag的通用接口
+  bool finished_;                                    // bag 读取状态
+  const int bag_id_;                                 // bag id
+  const std::string bag_filename_;                   // bag文件名
   double duration_in_seconds_;
-  int message_counter_;
-  std::deque<rosbag2_storage::SerializedBagMessage> buffered_messages_;
-  const rclcpp::Duration buffer_delay_;
-  FilteringEarlyMessageHandler filtering_early_message_handler_;
-  std::set<std::string> topics_;
+  int message_counter_;                                                  // 统计所有的msg数量
+  std::deque<rosbag2_storage::SerializedBagMessage> buffered_messages_;  // msg序列化的结构
+  const rclcpp::Duration buffer_delay_;                                  // 时间间隔
+  FilteringEarlyMessageHandler filtering_early_message_handler_;         // function用于处理msg
+  std::set<std::string> topics_;                                         // topics
 };
 
 class PlayableBagMultiplexer {
@@ -106,7 +114,7 @@ class PlayableBagMultiplexer {
   std::vector<PlayableBag> playable_bags_;
   std::priority_queue<BagMessageItem, std::vector<BagMessageItem>, BagMessageItem::TimestampIsGreater>
       next_message_queue_;
-  std::set<std::string> topics_;
+  std::set<std::string> topics_;  // 所有palyable bags的topics
 };
 
 }  // namespace cartographer_ros

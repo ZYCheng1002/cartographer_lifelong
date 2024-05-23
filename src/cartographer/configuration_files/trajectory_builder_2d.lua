@@ -13,28 +13,28 @@
 -- limitations under the License.
 
 TRAJECTORY_BUILDER_2D = {
-  use_imu_data = true,
-  min_range = 0.,
-  max_range = 30.,
-  min_z = -0.8,
-  max_z = 2.,
-  missing_data_ray_length = 5.,
-  num_accumulated_range_data = 1,
-  voxel_filter_size = 0.025,
-
+  use_imu_data = true,                                                            -- 是否使用imu数据
+  min_range = 0.,                                                                 -- laser最短距离
+  max_range = 30.,                                                                -- laser最远距离
+  min_z = -0.8,                                                                   -- laser最低高度
+  max_z = 2.,                                                                     -- laser最高高速
+  missing_data_ray_length = 5.,                                                   --
+  num_accumulated_range_data = 1,                                                 --
+  voxel_filter_size = 0.025,                                                      -- 体素滤波分辨率     
+  -- 自适应滤波
   adaptive_voxel_filter = {
     max_length = 0.5,
     min_num_points = 200,
     max_range = 50.,
   },
-
+  -- 闭环检测自适应滤波
   loop_closure_adaptive_voxel_filter = {
     max_length = 0.9,
     min_num_points = 100,
     max_range = 50.,
   },
 
-  use_online_correlative_scan_matching = false,
+  use_online_correlative_scan_matching = false,      
   real_time_correlative_scan_matcher = {
     linear_search_window = 0.1,
     angular_search_window = math.rad(20.),
