@@ -35,18 +35,17 @@ namespace mapping {
 // available to improve the extrapolation.
 class PoseExtrapolator : public PoseExtrapolatorInterface {
  public:
-  explicit PoseExtrapolator(common::Duration pose_queue_duration,
-                            double imu_gravity_time_constant);
+  explicit PoseExtrapolator(common::Duration pose_queue_duration, double imu_gravity_time_constant);
 
   PoseExtrapolator(const PoseExtrapolator&) = delete;
   PoseExtrapolator& operator=(const PoseExtrapolator&) = delete;
 
-  static std::unique_ptr<PoseExtrapolator> InitializeWithImu(
-      common::Duration pose_queue_duration, double imu_gravity_time_constant,
-      const sensor::ImuData& imu_data);
+  static std::unique_ptr<PoseExtrapolator> InitializeWithImu(common::Duration pose_queue_duration,
+                                                             double imu_gravity_time_constant,
+                                                             const sensor::ImuData& imu_data);
 
-  // Returns the time of the last added pose or Time::min() if no pose was added
-  // yet.
+  // Returns the time of the last added pose or Time::min() if no pose was added yet.
+  ///@brief 返回最新加入pose的时间戳
   common::Time GetLastPoseTime() const override;
   common::Time GetLastExtrapolatedTime() const override;
 
@@ -55,8 +54,7 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
   void AddOdometryData(const sensor::OdometryData& odometry_data) override;
   transform::Rigid3d ExtrapolatePose(common::Time time) override;
 
-  ExtrapolationResult ExtrapolatePosesWithGravity(
-      const std::vector<common::Time>& times) override;
+  ExtrapolationResult ExtrapolatePosesWithGravity(const std::vector<common::Time>& times) override;
 
   // Returns the current gravity alignment estimate as a rotation from
   // the tracking frame into a gravity aligned frame.
@@ -67,8 +65,7 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
   void TrimImuData();
   void TrimOdometryData();
   void AdvanceImuTracker(common::Time time, ImuTracker* imu_tracker) const;
-  Eigen::Quaterniond ExtrapolateRotation(common::Time time,
-                                         ImuTracker* imu_tracker) const;
+  Eigen::Quaterniond ExtrapolateRotation(common::Time time, ImuTracker* imu_tracker) const;
   Eigen::Vector3d ExtrapolateTranslation(common::Time time);
 
   const common::Duration pose_queue_duration_;
@@ -77,8 +74,8 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
     transform::Rigid3d pose;
   };
   std::deque<TimedPose> timed_pose_queue_;
-  Eigen::Vector3d linear_velocity_from_poses_ = Eigen::Vector3d::Zero();
-  Eigen::Vector3d angular_velocity_from_poses_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d linear_velocity_from_poses_ = Eigen::Vector3d::Zero();   // pose计算的线速度
+  Eigen::Vector3d angular_velocity_from_poses_ = Eigen::Vector3d::Zero();  // pose计算的角速度
 
   const double gravity_time_constant_;
   std::deque<sensor::ImuData> imu_data_;
@@ -88,8 +85,8 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
   TimedPose cached_extrapolated_pose_;
 
   std::deque<sensor::OdometryData> odometry_data_;
-  Eigen::Vector3d linear_velocity_from_odometry_ = Eigen::Vector3d::Zero();
-  Eigen::Vector3d angular_velocity_from_odometry_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d linear_velocity_from_odometry_ = Eigen::Vector3d::Zero();   // 线速度(odom)
+  Eigen::Vector3d angular_velocity_from_odometry_ = Eigen::Vector3d::Zero();  // 角速度(odom)
 };
 
 }  // namespace mapping

@@ -35,8 +35,7 @@
 namespace cartographer {
 namespace mapping {
 
-// Defines the limits of a grid map. This class must remain inlined for
-// performance reasons.
+///@class 管理地图边界
 class MapLimits {
  public:
   MapLimits(const double resolution, const Eigen::Vector2d& max,

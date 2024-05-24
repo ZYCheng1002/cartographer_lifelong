@@ -26,8 +26,8 @@ namespace sensor {
 
 struct TimedPointCloudData {
   common::Time time;
-  Eigen::Vector3f origin;
-  TimedPointCloud ranges;
+  Eigen::Vector3f origin;  // 传感器原点
+  TimedPointCloud ranges;  // 点的位置
   // 'intensities' has to be same size as 'ranges', or empty.
   std::vector<float> intensities;
 };
@@ -44,8 +44,7 @@ struct TimedPointCloudOriginData {
 };
 
 // Converts 'timed_point_cloud_data' to a proto::TimedPointCloudData.
-proto::TimedPointCloudData ToProto(
-    const TimedPointCloudData& timed_point_cloud_data);
+proto::TimedPointCloudData ToProto(const TimedPointCloudData& timed_point_cloud_data);
 
 // Converts 'proto' to TimedPointCloudData.
 TimedPointCloudData FromProto(const proto::TimedPointCloudData& proto);

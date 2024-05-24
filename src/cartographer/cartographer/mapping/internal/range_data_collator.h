@@ -30,23 +30,21 @@ namespace mapping {
 // timing. Up to one message per sensor is buffered, so a delay of the period of
 // the slowest sensor may be introduced, which can be alleviated by passing
 // subdivisions.
+///@class 不同传感器的对齐
 class RangeDataCollator {
  public:
-  explicit RangeDataCollator(
-      const std::vector<std::string>& expected_range_sensor_ids)
-      : expected_sensor_ids_(expected_range_sensor_ids.begin(),
-                             expected_range_sensor_ids.end()) {}
+  explicit RangeDataCollator(const std::vector<std::string>& expected_range_sensor_ids)
+      : expected_sensor_ids_(expected_range_sensor_ids.begin(), expected_range_sensor_ids.end()) {}
 
-  // If timed_point_cloud_data has incomplete intensity data, we will fill the
-  // missing intensities with kDefaultIntensityValue.
-  sensor::TimedPointCloudOriginData AddRangeData(
-      const std::string& sensor_id,
-      sensor::TimedPointCloudData timed_point_cloud_data);
+  ///@brief 添加传感器数据,返回对齐的传感器数据
+  ///@note 传入数据缺失强度信息,会使用默认值
+  sensor::TimedPointCloudOriginData AddRangeData(const std::string& sensor_id,
+                                                 sensor::TimedPointCloudData timed_point_cloud_data);
 
  private:
   sensor::TimedPointCloudOriginData CropAndMerge();
 
-  const std::set<std::string> expected_sensor_ids_;
+  const std::set<std::string> expected_sensor_ids_;  // 存储同类型传感器id
   // Store at most one message for each sensor.
   std::map<std::string, sensor::TimedPointCloudData> id_to_pending_data_;
   common::Time current_start_ = common::Time::min();

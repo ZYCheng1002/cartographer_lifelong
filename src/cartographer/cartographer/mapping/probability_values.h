@@ -57,6 +57,7 @@ inline float ProbabilityToCorrespondenceCost(const float probability) {
   return 1.f - probability;
 }
 
+///@brief 代价值转概率值
 inline float CorrespondenceCostToProbability(const float correspondence_cost) {
   return 1.f - correspondence_cost;
 }

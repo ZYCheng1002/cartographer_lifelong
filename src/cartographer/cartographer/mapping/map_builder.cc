@@ -126,7 +126,7 @@ int MapBuilder::AddTrajectoryBuilder(const std::set<SensorId>& expected_sensor_i
                                         pose_graph_odometry_motion_filter)));
   } else {
     /// 构建2D 的SLAM系统
-    std::unique_ptr<LocalTrajectoryBuilder2D> local_trajectory_builder;
+    std::unique_ptr<LocalTrajectoryBuilder2D> local_trajectory_builder;  // 局部地图构建器
     if (trajectory_options.has_trajectory_builder_2d_options()) {
       local_trajectory_builder = absl::make_unique<LocalTrajectoryBuilder2D>(
           trajectory_options.trajectory_builder_2d_options(), SelectRangeSensorIds(expected_sensor_ids));
