@@ -43,7 +43,7 @@ options = {
   landmarks_sampling_ratio = 1.,
 }
 
-MAP_BUILDER.use_trajectory_builder_2d = true
+MAP_BUILDER.use_trajectory_builder_2d = true  -- 设置map_builder.lua中的内容
 TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 10
 
 return options

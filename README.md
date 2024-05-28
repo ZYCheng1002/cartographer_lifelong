@@ -29,11 +29,14 @@ rosbags-convert --src ros1.bag  --dst rosbag_dir
 ros2 launch cartographer_ros demo_backpack_2d.launch.py bag_filename:=rosbag_dir
 ```
 
+## 2.3 localization
+
 # 3.Todo List
 
 - [ ] 保留建图时的图节点和边信息;
 - [ ] 增加cross check 判断大范围动态物体;
 - [ ] 匹配score判断优化--基于几何信息的适应性得分调整;
+- [ ] 去除3D SLAM
 
 # 4.Acknowledgements
 

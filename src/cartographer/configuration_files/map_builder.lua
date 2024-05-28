@@ -15,9 +15,9 @@
 include "pose_graph.lua"
 
 MAP_BUILDER = {
-  use_trajectory_builder_2d = false,
-  use_trajectory_builder_3d = false,
-  num_background_threads = 4,
-  pose_graph = POSE_GRAPH,
-  collate_by_trajectory = false,
+  use_trajectory_builder_2d = false,  -- 使用2D轨迹
+  use_trajectory_builder_3d = false,  -- 使用3D轨迹
+  num_background_threads = 4,         -- 核心线程数
+  pose_graph = POSE_GRAPH,            --
+  collate_by_trajectory = false,      --
 }

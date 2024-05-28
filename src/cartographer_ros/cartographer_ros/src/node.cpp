@@ -188,10 +188,12 @@ void Node::PublishSubmapList() {
 void Node::AddExtrapolator(const int trajectory_id, const TrajectoryOptions& options) {
   constexpr double kExtrapolationEstimationTimeSec = 0.001;  // 1 ms
   CHECK(extrapolators_.count(trajectory_id) == 0);
+  /// 根据2d轨迹或者3d轨迹获取重力常数
   const double gravity_time_constant =
       node_options_.map_builder_options.use_trajectory_builder_3d()
           ? options.trajectory_builder_options.trajectory_builder_3d_options().imu_gravity_time_constant()
           : options.trajectory_builder_options.trajectory_builder_2d_options().imu_gravity_time_constant();
+  ///@note 使用std::piecewise_construct调用构造函数
   extrapolators_.emplace(std::piecewise_construct,
                          std::forward_as_tuple(trajectory_id),
                          std::forward_as_tuple(::cartographer::common::FromSeconds(kExtrapolationEstimationTimeSec),
@@ -200,6 +202,7 @@ void Node::AddExtrapolator(const int trajectory_id, const TrajectoryOptions& opt
 
 void Node::AddSensorSamplers(const int trajectory_id, const TrajectoryOptions& options) {
   CHECK(sensor_samplers_.count(trajectory_id) == 0);
+  ///@note 使用std::piecewise_construct调用构造函数
   sensor_samplers_.emplace(std::piecewise_construct,
                            std::forward_as_tuple(trajectory_id),
                            std::forward_as_tuple(options.rangefinder_sampling_ratio,
@@ -364,8 +367,11 @@ int Node::AddTrajectory(const TrajectoryOptions& options) {
   const std::set<cartographer::mapping::TrajectoryBuilderInterface::SensorId> expected_sensor_ids =
       ComputeExpectedSensorIds(options);
   const int trajectory_id = map_builder_bridge_->AddTrajectory(expected_sensor_ids, options);
+  /// 构建位姿估计器
   AddExtrapolator(trajectory_id, options);
+  /// 传感器数据采样
   AddSensorSamplers(trajectory_id, options);
+  /// 订阅topic
   LaunchSubscribers(options, trajectory_id);
   maybe_warn_about_topic_mismatch_timer_ = node_->create_wall_timer(
       std::chrono::milliseconds(int(kTopicMismatchCheckDelaySec * 1000)), [this]() { MaybeWarnAboutTopicMismatch(); });
@@ -376,6 +382,7 @@ int Node::AddTrajectory(const TrajectoryOptions& options) {
 }
 
 void Node::LaunchSubscribers(const TrajectoryOptions& options, const int trajectory_id) {
+  /// 多同类型传感器的数据订阅
   for (const std::string& topic : ComputeRepeatedTopicNames(kLaserScanTopic, options.num_laser_scans)) {
     subscribers_[trajectory_id].push_back({SubscribeWithHandler<sensor_msgs::msg::LaserScan>(
                                                &Node::HandleLaserScanMessage, trajectory_id, topic, node_, this),
@@ -394,8 +401,7 @@ void Node::LaunchSubscribers(const TrajectoryOptions& options, const int traject
                                            topic});
   }
 
-  // For 2D SLAM, subscribe to the IMU if we expect it. For 3D SLAM, the IMU is
-  // required.
+  /// For 2D SLAM, subscribe to the IMU if we expect it. For 3D SLAM, the IMU is required.
   if (node_options_.map_builder_options.use_trajectory_builder_3d() ||
       (node_options_.map_builder_options.use_trajectory_builder_2d() &&
        options.trajectory_builder_options.trajectory_builder_2d_options().use_imu_data())) {
@@ -728,6 +734,7 @@ void Node::HandleLaserScanMessage(const int trajectory_id,
                                   const std::string& sensor_id,
                                   const sensor_msgs::msg::LaserScan::ConstSharedPtr& msg) {
   absl::MutexLock lock(&mutex_);
+  /// 数据固定采样
   if (!sensor_samplers_.at(trajectory_id).rangefinder_sampler.Pulse()) {
     return;
   }

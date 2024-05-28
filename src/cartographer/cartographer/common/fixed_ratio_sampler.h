@@ -24,8 +24,8 @@
 namespace cartographer {
 namespace common {
 
-// Signals when a sample should be taken from a stream of data to select a
-// uniformly distributed fraction of the data.
+// Signals when a sample should be taken from a stream of data to select a uniformly distributed fraction of the data.
+///@class 数据采样器
 class FixedRatioSampler {
  public:
   explicit FixedRatioSampler(double ratio);
@@ -41,9 +41,8 @@ class FixedRatioSampler {
   std::string DebugString();
 
  private:
-  // Sampling occurs if the proportion of samples to pulses drops below this
-  // number.
-  const double ratio_;
+  //、 Sampling occurs if the proportion of samples to pulses drops below this number.
+  const double ratio_;  // 采样频率
 
   int64 num_pulses_ = 0;
   int64 num_samples_ = 0;

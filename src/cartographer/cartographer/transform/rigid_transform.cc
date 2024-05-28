@@ -28,8 +28,7 @@ namespace transform {
 
 namespace {
 
-Eigen::Vector3d TranslationFromDictionary(
-    common::LuaParameterDictionary* dictionary) {
+Eigen::Vector3d TranslationFromDictionary(common::LuaParameterDictionary* dictionary) {
   const std::vector<double> translation = dictionary->GetArrayValuesAsDoubles();
   CHECK_EQ(3, translation.size()) << "Need (x, y, z) for translation.";
   return Eigen::Vector3d(translation[0], translation[1], translation[2]);
@@ -37,8 +36,7 @@ Eigen::Vector3d TranslationFromDictionary(
 
 }  // namespace
 
-Eigen::Quaterniond RollPitchYaw(const double roll, const double pitch,
-                                const double yaw) {
+Eigen::Quaterniond RollPitchYaw(const double roll, const double pitch, const double yaw) {
   const Eigen::AngleAxisd roll_angle(roll, Eigen::Vector3d::UnitX());
   const Eigen::AngleAxisd pitch_angle(pitch, Eigen::Vector3d::UnitY());
   const Eigen::AngleAxisd yaw_angle(yaw, Eigen::Vector3d::UnitZ());
@@ -46,8 +44,7 @@ Eigen::Quaterniond RollPitchYaw(const double roll, const double pitch,
 }
 
 transform::Rigid3d FromDictionary(common::LuaParameterDictionary* dictionary) {
-  const Eigen::Vector3d translation =
-      TranslationFromDictionary(dictionary->GetDictionary("translation").get());
+  const Eigen::Vector3d translation = TranslationFromDictionary(dictionary->GetDictionary("translation").get());
 
   auto rotation_dictionary = dictionary->GetDictionary("rotation");
   if (rotation_dictionary->HasKey("w")) {
@@ -58,11 +55,9 @@ transform::Rigid3d FromDictionary(common::LuaParameterDictionary* dictionary) {
     CHECK_NEAR(rotation.norm(), 1., 1e-9);
     return transform::Rigid3d(translation, rotation);
   } else {
-    const std::vector<double> rotation =
-        rotation_dictionary->GetArrayValuesAsDoubles();
+    const std::vector<double> rotation = rotation_dictionary->GetArrayValuesAsDoubles();
     CHECK_EQ(3, rotation.size()) << "Need (roll, pitch, yaw) for rotation.";
-    return transform::Rigid3d(
-        translation, RollPitchYaw(rotation[0], rotation[1], rotation[2]));
+    return transform::Rigid3d(translation, RollPitchYaw(rotation[0], rotation[1], rotation[2]));
   }
 }
 
