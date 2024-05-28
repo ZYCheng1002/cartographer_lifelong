@@ -38,6 +38,7 @@ def generate_launch_description():
         robot_desc = infp.read()
 
     ## ***** Nodes *****
+    # tf发布节点
     robot_state_publisher_node = Node(
         package = 'robot_state_publisher',
         executable = 'robot_state_publisher',
@@ -46,7 +47,7 @@ def generate_launch_description():
             {'use_sim_time': True}],
         output = 'screen'
         )
-
+    # 定位节点
     cartographer_node = Node(
         package = 'cartographer_ros',
         executable = 'cartographer_node',
@@ -59,7 +60,7 @@ def generate_launch_description():
             ('echoes', 'horizontal_laser_2d')],
         output = 'screen'
         )
-
+    # 栅格地图节点
     cartographer_occupancy_grid_node = Node(
         package = 'cartographer_ros',
         executable = 'cartographer_occupancy_grid_node',

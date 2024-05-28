@@ -2,3 +2,5 @@ build
 install
 log
 abseil-cpp
+src/cartographer/.idea/
+src/cartographer_ros/cartographer_ros/.idea/

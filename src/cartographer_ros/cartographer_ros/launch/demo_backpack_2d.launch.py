@@ -33,7 +33,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(FindPackageShare('cartographer_ros').find('cartographer_ros') + '/launch/backpack_2d.launch.py'),
         launch_arguments = {'use_sim_time': 'True'}.items()
         )
-
+    # rviz节点
     rviz_node = Node(
         package = 'rviz2',
         executable = 'rviz2',
@@ -41,7 +41,7 @@ def generate_launch_description():
         arguments = ['-d', FindPackageShare('cartographer_ros').find('cartographer_ros') + '/configuration_files/demo_2d.rviz'],
         parameters = [{'use_sim_time': True}],
     )
-
+    # bag play 节点
     ros2_bag_play_cmd = ExecuteProcess(
         cmd = ['ros2', 'bag', 'play', LaunchConfiguration('bag_filename'), '--clock'],
         name = 'rosbag_play',

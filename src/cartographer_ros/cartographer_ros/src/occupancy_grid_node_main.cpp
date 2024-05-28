@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+#include <rclcpp/version.h>
+
 #include <cmath>
+#include <rclcpp/rclcpp.hpp>
 #include <string>
 #include <vector>
 
@@ -36,17 +39,13 @@
 #include "cartographer_ros_msgs/srv/submap_query.hpp"
 #include "gflags/gflags.h"
 #include "nav_msgs/msg/occupancy_grid.hpp"
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/version.h>
 
-DEFINE_double(resolution, 0.05,
-              "Resolution of a grid cell in the published occupancy grid.");
+DEFINE_double(resolution, 0.05, "Resolution of a grid cell in the published occupancy grid.");
 DEFINE_double(publish_period_sec, 1.0, "OccupancyGrid publishing period.");
-DEFINE_bool(include_frozen_submaps, true,
-            "Include frozen submaps in the occupancy grid.");
-DEFINE_bool(include_unfrozen_submaps, true,
-            "Include unfrozen submaps in the occupancy grid.");
-DEFINE_string(occupancy_grid_topic, cartographer_ros::kOccupancyGridTopic,
+DEFINE_bool(include_frozen_submaps, true, "Include frozen submaps in the occupancy grid.");
+DEFINE_bool(include_unfrozen_submaps, true, "Include unfrozen submaps in the occupancy grid.");
+DEFINE_string(occupancy_grid_topic,
+              cartographer_ros::kOccupancyGridTopic,
               "Name of the topic on which the occupancy grid is published.");
 
 namespace cartographer_ros {
@@ -56,8 +55,7 @@ using ::cartographer::io::PaintSubmapSlicesResult;
 using ::cartographer::io::SubmapSlice;
 using ::cartographer::mapping::SubmapId;
 
-class Node : public rclcpp::Node
-{
+class Node : public rclcpp::Node {
  public:
   explicit Node(double resolution, double publish_period_sec);
   ~Node() {}
@@ -84,40 +82,30 @@ class Node : public rclcpp::Node
 };
 
 Node::Node(const double resolution, const double publish_period_sec)
-    : rclcpp::Node("cartographer_occupancy_grid_node"),
-      resolution_(resolution)
-{
-  callback_group_ = this->create_callback_group(
-    rclcpp::CallbackGroupType::MutuallyExclusive,
-    false);
+    : rclcpp::Node("cartographer_occupancy_grid_node"), resolution_(resolution) {
+  callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
   callback_group_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   callback_group_executor_->add_callback_group(callback_group_, this->get_node_base_interface());
-  client_ = this->create_client<cartographer_ros_msgs::srv::SubmapQuery>(
-        kSubmapQueryServiceName,
+  client_ = this->create_client<cartographer_ros_msgs::srv::SubmapQuery>(kSubmapQueryServiceName,
 #if RCLCPP_VERSION_GTE(17, 0, 0)
-        rclcpp::ServicesQoS(),
+                                                                         rclcpp::ServicesQoS(),
 #else
-        rmw_qos_profile_services_default,
+                                                                          rmw_qos_profile_services_default,
 #endif
-        callback_group_
-        );
+                                                                         callback_group_);
 
-  occupancy_grid_publisher_ = this->create_publisher<::nav_msgs::msg::OccupancyGrid>(
-      kOccupancyGridTopic, rclcpp::QoS(10).transient_local());
+  occupancy_grid_publisher_ =
+      this->create_publisher<::nav_msgs::msg::OccupancyGrid>(kOccupancyGridTopic, rclcpp::QoS(10).transient_local());
 
-  occupancy_grid_publisher_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(int(publish_period_sec * 1000)),
-    [this]() {
-      DrawAndPublish();
-    });
+  occupancy_grid_publisher_timer_ = this->create_wall_timer(std::chrono::milliseconds(int(publish_period_sec * 1000)),
+                                                            [this]() { DrawAndPublish(); });
 
   auto handleSubmapList =
-    [this, publish_period_sec](const typename cartographer_ros_msgs::msg::SubmapList::SharedPtr msg) -> void
-    {
+      [this, publish_period_sec](const typename cartographer_ros_msgs::msg::SubmapList::SharedPtr msg) -> void {
     absl::MutexLock locker(&mutex_);
 
     // We do not do any work if nobody listens.
-    if (this->count_publishers(kSubmapListTopic) == 0){
+    if (this->count_publishers(kSubmapListTopic) == 0) {
       return;
     }
 
@@ -137,14 +125,12 @@ Node::Node(const double resolution, const double publish_period_sec)
       SubmapSlice& submap_slice = submap_slices_[id];
       submap_slice.pose = ToRigid3d(submap_msg.pose);
       submap_slice.metadata_version = submap_msg.submap_version;
-      if (submap_slice.surface != nullptr &&
-          submap_slice.version == submap_msg.submap_version) {
+      if (submap_slice.surface != nullptr && submap_slice.version == submap_msg.submap_version) {
         continue;
       }
 
       auto fetched_textures = cartographer_ros::FetchSubmapTextures(
-            id, client_, callback_group_executor_,
-            std::chrono::milliseconds(int(publish_period_sec * 1000)));
+          id, client_, callback_group_executor_, std::chrono::milliseconds(int(publish_period_sec * 1000)));
       if (fetched_textures == nullptr) {
         continue;
       }
@@ -160,10 +146,11 @@ Node::Node(const double resolution, const double publish_period_sec)
       submap_slice.slice_pose = fetched_texture->slice_pose;
       submap_slice.resolution = fetched_texture->resolution;
       submap_slice.cairo_data.clear();
-      submap_slice.surface = ::cartographer::io::DrawTexture(
-          fetched_texture->pixels.intensity, fetched_texture->pixels.alpha,
-          fetched_texture->width, fetched_texture->height,
-          &submap_slice.cairo_data);
+      submap_slice.surface = ::cartographer::io::DrawTexture(fetched_texture->pixels.intensity,
+                                                             fetched_texture->pixels.alpha,
+                                                             fetched_texture->width,
+                                                             fetched_texture->height,
+                                                             &submap_slice.cairo_data);
     }
 
     // Delete all submaps that didn't appear in the message.
@@ -173,10 +160,10 @@ Node::Node(const double resolution, const double publish_period_sec)
 
     last_timestamp_ = msg->header.stamp;
     last_frame_id_ = msg->header.frame_id;
-    };
+  };
 
-  submap_list_subscriber_ = create_subscription<cartographer_ros_msgs::msg::SubmapList>(
-    kSubmapListTopic, rclcpp::QoS(10), handleSubmapList);
+  submap_list_subscriber_ =
+      create_subscription<cartographer_ros_msgs::msg::SubmapList>(kSubmapListTopic, rclcpp::QoS(10), handleSubmapList);
 }
 
 void Node::DrawAndPublish() {
@@ -185,8 +172,8 @@ void Node::DrawAndPublish() {
     return;
   }
   auto painted_slices = PaintSubmapSlices(submap_slices_, resolution_);
-  std::unique_ptr<nav_msgs::msg::OccupancyGrid> msg_ptr = CreateOccupancyGridMsg(
-      painted_slices, resolution_, last_frame_id_, last_timestamp_);
+  std::unique_ptr<nav_msgs::msg::OccupancyGrid> msg_ptr =
+      CreateOccupancyGridMsg(painted_slices, resolution_, last_frame_id_, last_timestamp_);
   occupancy_grid_publisher_->publish(*msg_ptr);
 }
 

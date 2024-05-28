@@ -60,7 +60,7 @@ class MapBuilderBridge {
       ::cartographer::sensor::RangeData range_data_in_local;
     };
     std::shared_ptr<const LocalSlamData> local_slam_data;  // 局部keyframe
-    cartographer::transform::Rigid3d local_to_map;  // Tgl,sub map到global map的变换矩阵
+    cartographer::transform::Rigid3d local_to_map;         // Tgl,sub map到global map的变换矩阵
     std::unique_ptr<cartographer::transform::Rigid3d> published_to_tracking;
     TrajectoryOptions trajectory_options;
   };
@@ -91,6 +91,7 @@ class MapBuilderBridge {
   visualization_msgs::msg::MarkerArray GetLandmarkPosesList(rclcpp::Time node_time);
   visualization_msgs::msg::MarkerArray GetConstraintList(rclcpp::Time node_time);
 
+  /// 返回SensorBridge实例
   SensorBridge* sensor_bridge(int trajectory_id);
 
  private:

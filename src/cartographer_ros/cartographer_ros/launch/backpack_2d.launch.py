@@ -37,6 +37,7 @@ def generate_launch_description():
         robot_desc = infp.read()
 
     ## ***** Nodes *****
+    # 发布tf变换,默认频率20Hz
     robot_state_publisher_node = Node(
         package = 'robot_state_publisher',
         executable = 'robot_state_publisher',
@@ -45,7 +46,7 @@ def generate_launch_description():
             {'use_sim_time': LaunchConfiguration('use_sim_time')}],
         output = 'screen'
         )
-
+    # 建图节点
     cartographer_node = Node(
         package = 'cartographer_ros',
         executable = 'cartographer_node',
@@ -57,7 +58,7 @@ def generate_launch_description():
             ('echoes', 'horizontal_laser_2d')],
         output = 'screen'
         )
-
+    # 栅格地图可视化
     cartographer_occupancy_grid_node = Node(
         package = 'cartographer_ros',
         executable = 'cartographer_occupancy_grid_node',

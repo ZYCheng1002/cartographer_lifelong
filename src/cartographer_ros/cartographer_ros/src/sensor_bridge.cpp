@@ -28,6 +28,7 @@ using carto::transform::Rigid3d;
 
 namespace {
 
+///@brief 检查是否有'/'
 const std::string& CheckNoLeadingSlash(const std::string& frame_id) {
   if (frame_id.size() > 0) {
     CHECK_NE(frame_id[0], '/') << "The frame_id " << frame_id
@@ -118,6 +119,7 @@ std::unique_ptr<carto::sensor::ImuData> SensorBridge::ToImuData(const sensor_msg
          "http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html.";
 
   const carto::common::Time time = FromRos(msg->header.stamp);
+  /// 查找tf变换
   const auto sensor_to_tracking = tf_bridge_.LookupToTracking(time, CheckNoLeadingSlash(msg->header.frame_id));
   if (sensor_to_tracking == nullptr) {
     return nullptr;
@@ -126,6 +128,7 @@ std::unique_ptr<carto::sensor::ImuData> SensorBridge::ToImuData(const sensor_msg
       << "The IMU frame must be colocated with the tracking frame. "
          "Transforming linear acceleration into the tracking frame will "
          "otherwise be imprecise.";
+  /// 角速度和线速度旋转变化后统一数据类型
   return absl::make_unique<carto::sensor::ImuData>(
       carto::sensor::ImuData{time,
                              sensor_to_tracking->rotation() * ToEigen(msg->linear_acceleration),
