@@ -161,9 +161,12 @@ bool MapBuilderBridge::SerializeState(const std::string& filename, const bool in
 void MapBuilderBridge::HandleSubmapQuery(const cartographer_ros_msgs::srv::SubmapQuery::Request::SharedPtr request,
                                          cartographer_ros_msgs::srv::SubmapQuery::Response::SharedPtr response) {
   cartographer::mapping::proto::SubmapQuery::Response response_proto;
+  /// 初始化索引
   cartographer::mapping::SubmapId submap_id{request->trajectory_id, request->submap_index};
+  /// 获取索引
   const std::string error = map_builder_->SubmapToProto(submap_id, &response_proto);
   if (!error.empty()) {
+    /// 未查询到对应的submap
     LOG(ERROR) << error;
     response->status.code = cartographer_ros_msgs::msg::StatusCode::NOT_FOUND;
     response->status.message = error;
@@ -185,9 +188,10 @@ void MapBuilderBridge::HandleSubmapQuery(const cartographer_ros_msgs::srv::Subma
 }
 
 std::map<int, ::cartographer::mapping::PoseGraphInterface::TrajectoryState> MapBuilderBridge::GetTrajectoryStates() {
+  /// 从后端获取所有的轨迹
   auto trajectory_states = map_builder_->pose_graph()->GetTrajectoryStates();
-  // Add active trajectories that are not yet in the pose graph, but are e.g.
-  // waiting for input sensor data and thus already have a sensor bridge.
+  /// Add active trajectories that are not yet in the pose graph, but are e.g. waiting for input sensor data and thus
+  /// already have a sensor bridge. 添加活跃的轨迹
   for (const auto& sensor_bridge : sensor_bridges_) {
     trajectory_states.insert(
         std::make_pair(sensor_bridge.first, ::cartographer::mapping::PoseGraphInterface::TrajectoryState::ACTIVE));
@@ -242,9 +246,10 @@ std::unordered_map<int, MapBuilderBridge::LocalTrajectoryData> MapBuilderBridge:
 void MapBuilderBridge::HandleTrajectoryQuery(
     const cartographer_ros_msgs::srv::TrajectoryQuery::Request::SharedPtr request,
     cartographer_ros_msgs::srv::TrajectoryQuery::Response::SharedPtr response) {
-  // This query is safe if the trajectory doesn't exist (returns 0 poses).
-  // However, we can filter unwanted states at the higher level in the node.
-  const auto node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
+  /// This query is safe if the trajectory doesn't exist (returns 0 poses).
+  /// However, we can filter unwanted states at the higher level in the node.
+  const auto node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();  // 所有的子地图
+  /// 获取所有子地图的pose
   for (const auto& node_id_data : node_poses.trajectory(request->trajectory_id)) {
     if (!node_id_data.data.constant_pose_data.has_value()) {
       continue;

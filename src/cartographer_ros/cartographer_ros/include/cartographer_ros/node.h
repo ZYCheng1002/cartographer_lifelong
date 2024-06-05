@@ -56,7 +56,7 @@
 
 namespace cartographer_ros {
 
-// Wires up ROS topics to SLAM.
+///@class 外部topic server等订阅
 class Node {
  public:
   Node(const NodeOptions& node_options,
@@ -65,14 +65,14 @@ class Node {
        rclcpp::Node::SharedPtr node,
        bool collect_metrics);
   ~Node();
-
   Node(const Node&) = delete;
   Node& operator=(const Node&) = delete;
 
-  // Finishes all yet active trajectories.
+  ///@brief Finishes all yet active trajectories.
   void FinishAllTrajectories();
-  // Finishes a single given trajectory. Returns false if the trajectory did not
-  // exist or was already finished.
+
+  ///@brief Finishes a single given trajectory.
+  ///@return false: trajectory did not exist or already finished.
   bool FinishTrajectory(int trajectory_id);
 
   ///@brief 最终优化
@@ -81,18 +81,16 @@ class Node {
   ///@brief 使用默认topic进行轨迹推理(消息订阅的主要接口)
   void StartTrajectoryWithDefaultTopics(const TrajectoryOptions& options);
 
-  // Returns unique SensorIds for multiple input bag files based on
-  // their TrajectoryOptions.
-  // 'SensorId::id' is the expected ROS topic name.
+  /// Returns unique SensorIds for multiple input bag files based on their TrajectoryOptions.
+  /// 'SensorId::id' is the expected ROS topic name.
   std::vector<std::set<::cartographer::mapping::TrajectoryBuilderInterface::SensorId>>
   ComputeDefaultSensorIdsForMultipleBags(const std::vector<TrajectoryOptions>& bags_options) const;
 
-  // Adds a trajectory for offline processing, i.e. not listening to topics.
+  ///@brief Adds a trajectory for offline processing, i.e. not listening to topics.
   int AddOfflineTrajectory(
       const std::set<cartographer::mapping::TrajectoryBuilderInterface::SensorId>& expected_sensor_ids,
       const TrajectoryOptions& options);
 
-  // The following functions handle adding sensor data to a trajectory.
   void HandleOdometryMessage(int trajectory_id,
                              const std::string& sensor_id,
                              const nav_msgs::msg::Odometry::ConstSharedPtr& msg);
@@ -113,31 +111,31 @@ class Node {
   void HandleMultiEchoLaserScanMessage(int trajectory_id,
                                        const std::string& sensor_id,
                                        const sensor_msgs::msg::MultiEchoLaserScan::ConstSharedPtr& msg);
+  ///@brief 点云数据回调函数
   void HandlePointCloud2Message(int trajectory_id,
                                 const std::string& sensor_id,
                                 const sensor_msgs::msg::PointCloud2::ConstSharedPtr& msg);
 
-  // Serializes the complete Node state.
+  ///@brief Serializes the complete Node state. 保存所有的slam状态信息
   void SerializeState(const std::string& filename, const bool include_unfinished_submaps);
 
-  // Loads a serialized SLAM state from a .pbstream file.
+  ///@brief Loads a serialized SLAM state from a .pbstream file. 加载历史SLAM状态信息
   void LoadState(const std::string& state_filename, bool load_frozen_state);
 
  private:
   struct Subscriber {
     rclcpp::SubscriptionBase::SharedPtr subscriber;
-
-    // ::ros::Subscriber::getTopic() does not necessarily return the same
-    // std::string
-    // it was given in its constructor. Since we rely on the topic name as the
-    // unique identifier of a subscriber, we remember it ourselves.
+    /// ::ros::Subscriber::getTopic() does not necessarily return the same std::string it was given in its constructor.
+    /// Since we rely on the topic name as the unique identifier of a subscriber, we remember it ourselves.
     std::string topic;
   };
-
+  ///@brief 查询submap
   bool handleSubmapQuery(const cartographer_ros_msgs::srv::SubmapQuery::Request::SharedPtr request,
                          cartographer_ros_msgs::srv::SubmapQuery::Response::SharedPtr response);
+  ///@brief 获取轨迹
   bool handleTrajectoryQuery(const cartographer_ros_msgs::srv::TrajectoryQuery::Request::SharedPtr request,
                              cartographer_ros_msgs::srv::TrajectoryQuery::Response::SharedPtr response);
+  ///@brief 开始新的轨迹
   bool handleStartTrajectory(const cartographer_ros_msgs::srv::StartTrajectory::Request::SharedPtr request,
                              cartographer_ros_msgs::srv::StartTrajectory::Response::SharedPtr response);
   bool handleFinishTrajectory(const cartographer_ros_msgs::srv::FinishTrajectory::Request::SharedPtr request,
@@ -149,8 +147,7 @@ class Node {
   bool handleReadMetrics(const cartographer_ros_msgs::srv::ReadMetrics::Request::SharedPtr,
                          cartographer_ros_msgs::srv::ReadMetrics::Response::SharedPtr response);
 
-  // Returns the set of SensorIds expected for a trajectory.
-  // 'SensorId::id' is the expected ROS topic name.
+  ///@brief Returns the set of SensorIds expected for a trajectory. 'SensorId::id' is the expected ROS topic name.
   std::set<::cartographer::mapping::TrajectoryBuilderInterface::SensorId> ComputeExpectedSensorIds(
       const TrajectoryOptions& options) const;
   int AddTrajectory(const TrajectoryOptions& options);
@@ -167,18 +164,20 @@ class Node {
   bool ValidateTopicNames(const TrajectoryOptions& options);
   cartographer_ros_msgs::msg::StatusResponse FinishTrajectoryUnderLock(int trajectory_id)
       EXCLUSIVE_LOCKS_REQUIRED(mutex_);
+  ///@note ros2中暂没有使用
   void MaybeWarnAboutTopicMismatch();
 
-  // Helper function for service handlers that need to check trajectory states.
+  ///@brief Helper function for service handlers that need to check trajectory states.
   cartographer_ros_msgs::msg::StatusResponse TrajectoryStateToStatus(
       int trajectory_id, const std::set<cartographer::mapping::PoseGraphInterface::TrajectoryState>& valid_states);
-  const NodeOptions node_options_;
 
-  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+ private:
+  const NodeOptions node_options_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;  // 广播tf2
 
   absl::Mutex mutex_;
   std::unique_ptr<cartographer_ros::metrics::FamilyFactory> metrics_registry_;
-  std::shared_ptr<MapBuilderBridge> map_builder_bridge_ GUARDED_BY(mutex_);
+  std::shared_ptr<MapBuilderBridge> map_builder_bridge_ GUARDED_BY(mutex_);  // cartographer交互
 
   rclcpp::Node::SharedPtr node_;
   ::rclcpp::Publisher<::cartographer_ros_msgs::msg::SubmapList>::SharedPtr submap_list_publisher_;
@@ -187,8 +186,8 @@ class Node {
   ::rclcpp::Publisher<::visualization_msgs::msg::MarkerArray>::SharedPtr constraint_list_publisher_;
   ::rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr tracked_pose_publisher_;
   ::rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr scan_matched_point_cloud_publisher_;
-  // These ros service servers need to live for the lifetime of the node.
-  ::rclcpp::Service<cartographer_ros_msgs::srv::SubmapQuery>::SharedPtr submap_query_server_;
+  /// These ros service servers need to live for the lifetime of the node.
+  ::rclcpp::Service<cartographer_ros_msgs::srv::SubmapQuery>::SharedPtr submap_query_server_;  // 查询submap
   ::rclcpp::Service<cartographer_ros_msgs::srv::TrajectoryQuery>::SharedPtr trajectory_query_server;
   ::rclcpp::Service<cartographer_ros_msgs::srv::StartTrajectory>::SharedPtr start_trajectory_server_;
   ::rclcpp::Service<cartographer_ros_msgs::srv::FinishTrajectory>::SharedPtr finish_trajectory_server_;
@@ -215,18 +214,17 @@ class Node {
     ::cartographer::common::FixedRatioSampler landmark_sampler;
   };
 
-  // These are keyed with 'trajectory_id'.
+  /// 以下key值均为trajectory_id
   std::map<int, ::cartographer::mapping::PoseExtrapolator> extrapolators_;  // 位姿推测器
-  std::map<int, builtin_interfaces::msg::Time> last_published_tf_stamps_;
-  std::unordered_map<int, TrajectorySensorSamplers> sensor_samplers_;  // 传感器采样
-  std::unordered_map<int, std::vector<Subscriber>> subscribers_;
+  std::map<int, builtin_interfaces::msg::Time> last_published_tf_stamps_;   // 记录tf发布时间点
+  std::unordered_map<int, TrajectorySensorSamplers> sensor_samplers_;       // 传感器采样
+  std::unordered_map<int, std::vector<Subscriber>> subscribers_;            // 所有的订阅
   std::unordered_set<std::string> subscribed_topics_;
   std::unordered_set<int> trajectories_scheduled_for_finish_;
 
-  // The timer for publishing local trajectory data (i.e. pose transforms and
-  // range data point clouds) is a regular timer which is not triggered when
-  // simulation time is standing still. This prevents overflowing the transform
-  // listener buffer by publishing the same transforms over and over again.
+  /// The timer for publishing local trajectory data (i.e. pose transforms and range data point clouds) is a regular
+  /// timer which is not triggered when simulation time is standing still. This prevents overflowing the transform
+  /// listener buffer by publishing the same transforms over and over again.
   ::rclcpp::TimerBase::SharedPtr submap_list_timer_;
   ::rclcpp::TimerBase::SharedPtr local_trajectory_data_timer_;
   ::rclcpp::TimerBase::SharedPtr trajectory_node_list_timer_;

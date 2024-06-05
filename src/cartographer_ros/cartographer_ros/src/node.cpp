@@ -104,7 +104,7 @@ Node::Node(const NodeOptions& node_options,
     metrics_registry_ = absl::make_unique<metrics::FamilyFactory>();
     carto::metrics::RegisterAllMetrics(metrics_registry_.get());
   }
-
+  /// 定义一些需要可视化或调试的msg pub
   submap_list_publisher_ = node_->create_publisher<::cartographer_ros_msgs::msg::SubmapList>(kSubmapListTopic, 10);
   trajectory_node_list_publisher_ =
       node_->create_publisher<::visualization_msgs::msg::MarkerArray>(kTrajectoryNodeListTopic, 10);
@@ -115,29 +115,34 @@ Node::Node(const NodeOptions& node_options,
   if (node_options_.publish_tracked_pose) {
     tracked_pose_publisher_ = node_->create_publisher<::geometry_msgs::msg::PoseStamped>(kTrackedPoseTopic, 10);
   }
-
   scan_matched_point_cloud_publisher_ =
       node_->create_publisher<sensor_msgs::msg::PointCloud2>(kScanMatchedPointCloudTopic, 10);
-
+  /// submap查询server
   submap_query_server_ = node_->create_service<cartographer_ros_msgs::srv::SubmapQuery>(
       kSubmapQueryServiceName, std::bind(&Node::handleSubmapQuery, this, std::placeholders::_1, std::placeholders::_2));
+  /// 轨迹查询server
   trajectory_query_server = node_->create_service<cartographer_ros_msgs::srv::TrajectoryQuery>(
       kTrajectoryQueryServiceName,
       std::bind(&Node::handleTrajectoryQuery, this, std::placeholders::_1, std::placeholders::_2));
+  /// 开始新的轨迹server
   start_trajectory_server_ = node_->create_service<cartographer_ros_msgs::srv::StartTrajectory>(
       kStartTrajectoryServiceName,
       std::bind(&Node::handleStartTrajectory, this, std::placeholders::_1, std::placeholders::_2));
+  /// 结束一条轨迹server
   finish_trajectory_server_ = node_->create_service<cartographer_ros_msgs::srv::FinishTrajectory>(
       kFinishTrajectoryServiceName,
       std::bind(&Node::handleFinishTrajectory, this, std::placeholders::_1, std::placeholders::_2));
+  /// 保存slam状态
   write_state_server_ = node_->create_service<cartographer_ros_msgs::srv::WriteState>(
       kWriteStateServiceName, std::bind(&Node::handleWriteState, this, std::placeholders::_1, std::placeholders::_2));
+  /// 获取所有的轨迹状态
   get_trajectory_states_server_ = node_->create_service<cartographer_ros_msgs::srv::GetTrajectoryStates>(
       kGetTrajectoryStatesServiceName,
       std::bind(&Node::handleGetTrajectoryStates, this, std::placeholders::_1, std::placeholders::_2));
+  /// 获取度量指标?(todo)
   read_metrics_server_ = node_->create_service<cartographer_ros_msgs::srv::ReadMetrics>(
       kReadMetricsServiceName, std::bind(&Node::handleReadMetrics, this, std::placeholders::_1, std::placeholders::_2));
-
+  /// 定时发布submap
   submap_list_timer_ =
       node_->create_wall_timer(std::chrono::milliseconds(int(node_options_.submap_publish_period_sec * 1000)),
                                [this]() { PublishSubmapList(); });
@@ -401,7 +406,7 @@ void Node::LaunchSubscribers(const TrajectoryOptions& options, const int traject
                                            topic});
   }
 
-  /// For 2D SLAM, subscribe to the IMU if we expect it. For 3D SLAM, the IMU is required.
+  /// 2D SLAM存在IMU数据则订阅, 3D SLAM必须含有IMU数据
   if (node_options_.map_builder_options.use_trajectory_builder_3d() ||
       (node_options_.map_builder_options.use_trajectory_builder_2d() &&
        options.trajectory_builder_options.trajectory_builder_2d_options().use_imu_data())) {
@@ -458,6 +463,7 @@ cartographer_ros_msgs::msg::StatusResponse Node::TrajectoryStateToStatus(
 
   const auto it = trajectory_states.find(trajectory_id);
   if (it == trajectory_states.end()) {
+    /// 未查询到轨迹
     status_response.message = "Trajectory " + std::to_string(trajectory_id) + " doesn't exist.";
     status_response.code = cartographer_ros_msgs::msg::StatusCode::NOT_FOUND;
     return status_response;
@@ -518,7 +524,7 @@ bool Node::handleStartTrajectory(const cartographer_ros_msgs::srv::StartTrajecto
       return true;
     }
 
-    // Check if the requested trajectory for the relative initial pose exists.
+    /// Check if the requested trajectory for the relative initial pose exists.
     response->status = TrajectoryStateToStatus(
         request->relative_to_trajectory_id,
         {TrajectoryState::ACTIVE, TrajectoryState::FROZEN, TrajectoryState::FINISHED} /* valid states */);
@@ -725,8 +731,10 @@ void Node::HandleImuMessage(const int trajectory_id,
   auto sensor_bridge_ptr = map_builder_bridge_->sensor_bridge(trajectory_id);
   auto imu_data_ptr = sensor_bridge_ptr->ToImuData(msg);
   if (imu_data_ptr != nullptr) {
+    /// 外部位姿递推器添加IMU数据
     extrapolators_.at(trajectory_id).AddImuData(*imu_data_ptr);
   }
+  /// 通过sensor_bridge 传到内部cartographer
   sensor_bridge_ptr->HandleImuMessage(sensor_id, msg);
 }
 
@@ -772,34 +780,6 @@ void Node::LoadState(const std::string& state_filename, const bool load_frozen_s
 }
 
 // TODO: find ROS equivalent to ros::master::getTopics
-void Node::MaybeWarnAboutTopicMismatch() {
-  //  ::ros::master::V_TopicInfo ros_topics;
-  //  ::ros::master::getTopics(ros_topics);
-  //  std::set<std::string> published_topics;
-  //  std::stringstream published_topics_string;
-  //  for (const auto& it : ros_topics) {
-  //    std::string resolved_topic = node_handle_.resolveName(it.name, false);
-  //    published_topics.insert(resolved_topic);
-  //    published_topics_string << resolved_topic << ",";
-  //  }
-  //  bool print_topics = false;
-  //  for (const auto& entry : subscribers_) {
-  //    int trajectory_id = entry.first;
-  //    for (const auto& subscriber : entry.second) {
-  //      std::string resolved_topic = node_handle_.resolveName(subscriber.topic);
-  //      if (published_topics.count(resolved_topic) == 0) {
-  //        LOG(WARNING) << "Expected topic \"" << subscriber.topic
-  //                     << "\" (trajectory " << trajectory_id << ")"
-  //                     << " (resolved topic \"" << resolved_topic << "\")"
-  //                     << " but no publisher is currently active.";
-  //        print_topics = true;
-  //      }
-  //    }
-  //  }
-  //  if (print_topics) {
-  //    LOG(WARNING) << "Currently available topics are: "
-  //                 << published_topics_string.str();
-  //  }
-}
+void Node::MaybeWarnAboutTopicMismatch() {}
 
 }  // namespace cartographer_ros

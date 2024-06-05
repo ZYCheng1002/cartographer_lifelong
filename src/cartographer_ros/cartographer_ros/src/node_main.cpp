@@ -51,10 +51,10 @@ namespace {
 void Run() {
   rclcpp::Node::SharedPtr cartographer_node = rclcpp::Node::make_shared("cartographer_node");
   constexpr double kTfBufferCacheTimeInSeconds = 10.;
-
+  /// 用于缓存tf变换,缓存10S的tf变换
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>(
       cartographer_node->get_clock(), tf2::durationFromSec(kTfBufferCacheTimeInSeconds), cartographer_node);
-
+  /// tf监听
   std::shared_ptr<tf2_ros::TransformListener> tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer);
 
   NodeOptions node_options;

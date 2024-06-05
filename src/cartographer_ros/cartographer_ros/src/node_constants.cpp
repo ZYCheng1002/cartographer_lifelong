@@ -20,8 +20,7 @@
 
 namespace cartographer_ros {
 
-std::vector<std::string> ComputeRepeatedTopicNames(const std::string& topic,
-                                                   const int num_topics) {
+std::vector<std::string> ComputeRepeatedTopicNames(const std::string& topic, const int num_topics) {
   CHECK_GE(num_topics, 0);
   if (num_topics == 1) {
     return {topic};

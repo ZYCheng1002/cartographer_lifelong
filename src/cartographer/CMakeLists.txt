@@ -26,8 +26,8 @@ set(CARTOGRAPHER_HAS_GRPC ${BUILD_GRPC})
 option(BUILD_PROMETHEUS "build Prometheus monitoring support" false)
 
 include("${PROJECT_SOURCE_DIR}/cmake/functions.cmake")
-#google_initialize_cartographer_project()
-#google_enable_testing()
+google_initialize_cartographer_project()
+google_enable_testing()
 
 find_package(absl REQUIRED)
 set(BOOST_COMPONENTS iostreams)

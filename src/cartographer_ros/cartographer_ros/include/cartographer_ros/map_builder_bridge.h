@@ -47,6 +47,7 @@
 
 namespace cartographer_ros {
 
+///@class cartographer与外部ros的交互
 class MapBuilderBridge {
  public:
   struct LocalTrajectoryData {
@@ -78,7 +79,7 @@ class MapBuilderBridge {
   void FinishTrajectory(int trajectory_id);
   void RunFinalOptimization();
   bool SerializeState(const std::string& filename, const bool include_unfinished_submaps);
-
+  ///@brief 查询request中对应id的submap
   void HandleSubmapQuery(const cartographer_ros_msgs::srv::SubmapQuery::Request::SharedPtr request,
                          cartographer_ros_msgs::srv::SubmapQuery::Response::SharedPtr response);
   void HandleTrajectoryQuery(const cartographer_ros_msgs::srv::TrajectoryQuery::Request::SharedPtr request,
