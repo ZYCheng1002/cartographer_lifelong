@@ -45,6 +45,7 @@ class LocalSlamResultData;
 // global SLAM stack, i.e. local SLAM for initial pose estimates, scan matching
 // to detect loop closure, and a sparse pose graph optimization to compute
 // optimized pose estimates.
+///@class 全局SLAM
 class TrajectoryBuilderInterface {
  public:
   struct InsertionResult {

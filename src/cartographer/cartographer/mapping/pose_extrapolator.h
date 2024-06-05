@@ -56,8 +56,7 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
 
   ExtrapolationResult ExtrapolatePosesWithGravity(const std::vector<common::Time>& times) override;
 
-  // Returns the current gravity alignment estimate as a rotation from
-  // the tracking frame into a gravity aligned frame.
+  /// Returns the current gravity alignment estimate as a rotation from the tracking frame into a gravity aligned frame.
   Eigen::Quaterniond EstimateGravityOrientation(common::Time time) override;
 
  private:

@@ -45,9 +45,9 @@ Eigen::Quaterniond RollPitchYaw(const double roll, const double pitch, const dou
 
 transform::Rigid3d FromDictionary(common::LuaParameterDictionary* dictionary) {
   const Eigen::Vector3d translation = TranslationFromDictionary(dictionary->GetDictionary("translation").get());
-
   auto rotation_dictionary = dictionary->GetDictionary("rotation");
   if (rotation_dictionary->HasKey("w")) {
+    /// 四元数
     const Eigen::Quaterniond rotation(rotation_dictionary->GetDouble("w"),
                                       rotation_dictionary->GetDouble("x"),
                                       rotation_dictionary->GetDouble("y"),
@@ -55,6 +55,7 @@ transform::Rigid3d FromDictionary(common::LuaParameterDictionary* dictionary) {
     CHECK_NEAR(rotation.norm(), 1., 1e-9);
     return transform::Rigid3d(translation, rotation);
   } else {
+    /// 欧拉角
     const std::vector<double> rotation = rotation_dictionary->GetArrayValuesAsDoubles();
     CHECK_EQ(3, rotation.size()) << "Need (roll, pitch, yaw) for rotation.";
     return transform::Rigid3d(translation, RollPitchYaw(rotation[0], rotation[1], rotation[2]));
