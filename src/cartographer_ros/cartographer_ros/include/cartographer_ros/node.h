@@ -147,7 +147,7 @@ class Node {
   bool handleReadMetrics(const cartographer_ros_msgs::srv::ReadMetrics::Request::SharedPtr,
                          cartographer_ros_msgs::srv::ReadMetrics::Response::SharedPtr response);
 
-  ///@brief Returns the set of SensorIds expected for a trajectory. 'SensorId::id' is the expected ROS topic name.
+  ///@brief 返回传感器类型和对应topic
   std::set<::cartographer::mapping::TrajectoryBuilderInterface::SensorId> ComputeExpectedSensorIds(
       const TrajectoryOptions& options) const;
   int AddTrajectory(const TrajectoryOptions& options);

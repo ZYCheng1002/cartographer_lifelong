@@ -49,11 +49,11 @@ class ImuTracker {
 
  private:
   const double imu_gravity_time_constant_;
-  common::Time time_;
-  common::Time last_linear_acceleration_time_;
-  Eigen::Quaterniond orientation_;
-  Eigen::Vector3d gravity_vector_;  // 重力向量
-  Eigen::Vector3d imu_angular_velocity_;
+  common::Time time_;                           // 最新的时间辍
+  common::Time last_linear_acceleration_time_;  // 上一帧加速度观测是的时间
+  Eigen::Quaterniond orientation_;              // 状态量
+  Eigen::Vector3d gravity_vector_;              // 重力向量
+  Eigen::Vector3d imu_angular_velocity_;        // 角速度观测
 };
 
 }  // namespace mapping

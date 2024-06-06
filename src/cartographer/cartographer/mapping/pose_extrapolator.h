@@ -44,9 +44,10 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
                                                              double imu_gravity_time_constant,
                                                              const sensor::ImuData& imu_data);
 
-  // Returns the time of the last added pose or Time::min() if no pose was added yet.
   ///@brief 返回最新加入pose的时间戳
   common::Time GetLastPoseTime() const override;
+
+  ///@brief 返回上次预测的时间
   common::Time GetLastExtrapolatedTime() const override;
 
   void AddPose(common::Time time, const transform::Rigid3d& pose) override;
@@ -72,14 +73,14 @@ class PoseExtrapolator : public PoseExtrapolatorInterface {
     common::Time time;
     transform::Rigid3d pose;
   };
-  std::deque<TimedPose> timed_pose_queue_;
+  std::deque<TimedPose> timed_pose_queue_;                                 // 时间化的pose
   Eigen::Vector3d linear_velocity_from_poses_ = Eigen::Vector3d::Zero();   // pose计算的线速度
   Eigen::Vector3d angular_velocity_from_poses_ = Eigen::Vector3d::Zero();  // pose计算的角速度
 
-  const double gravity_time_constant_;
-  std::deque<sensor::ImuData> imu_data_;
-  std::unique_ptr<ImuTracker> imu_tracker_;
-  std::unique_ptr<ImuTracker> odometry_imu_tracker_;
+  const double gravity_time_constant_;                // 重力常量
+  std::deque<sensor::ImuData> imu_data_;              // 存贮imu数据
+  std::unique_ptr<ImuTracker> imu_tracker_;           // imu递推
+  std::unique_ptr<ImuTracker> odometry_imu_tracker_;  // odom递推
   std::unique_ptr<ImuTracker> extrapolation_imu_tracker_;
   TimedPose cached_extrapolated_pose_;
 

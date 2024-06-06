@@ -44,7 +44,7 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
                           const LocalSlamResultCallback& local_slam_result_callback,
                           const absl::optional<MotionFilter>& pose_graph_odometry_motion_filter)
       : trajectory_id_(trajectory_id),
-        pose_graph_(pose_graph),
+        pose_graph_(pose_graph),  // 成员变量声明为const,必须在此完成初始化
         local_trajectory_builder_(std::move(local_trajectory_builder)),
         local_slam_result_callback_(local_slam_result_callback),
         pose_graph_odometry_motion_filter_(pose_graph_odometry_motion_filter) {}
@@ -55,32 +55,39 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
 
   void AddSensorData(const std::string& sensor_id, const sensor::TimedPointCloudData& timed_point_cloud_data) override {
     CHECK(local_trajectory_builder_) << "Cannot add TimedPointCloudData without a LocalTrajectoryBuilder.";
+    /// 进行匹配并且获得匹配结果(submap,range data)
     std::unique_ptr<typename LocalTrajectoryBuilder::MatchingResult> matching_result =
         local_trajectory_builder_->AddRangeData(sensor_id, timed_point_cloud_data);
     if (matching_result == nullptr) {
-      // The range data has not been fully accumulated yet.
+      /// The range data has not been fully accumulated yet.
       return;
     }
     kLocalSlamMatchingResults->Increment();
     std::unique_ptr<InsertionResult> insertion_result;
     if (matching_result->insertion_result != nullptr) {
       kLocalSlamInsertionResults->Increment();
-      auto node_id = pose_graph_->AddNode(matching_result->insertion_result->constant_data,
-                                          trajectory_id_,
-                                          matching_result->insertion_result->insertion_submaps);
+      auto node_id = pose_graph_->AddNode(matching_result->insertion_result->constant_data,     // frame信息
+                                          trajectory_id_,                                       //
+                                          matching_result->insertion_result->insertion_submaps  // submap信息
+      );
       CHECK_EQ(node_id.trajectory_id, trajectory_id_);
       insertion_result = absl::make_unique<InsertionResult>(InsertionResult{
           node_id,
-          matching_result->insertion_result->constant_data,
+          matching_result->insertion_result->constant_data,  // 匹配信息
+          // 匹配里程计submap
           std::vector<std::shared_ptr<const Submap>>(matching_result->insertion_result->insertion_submaps.begin(),
-                                                     matching_result->insertion_result->insertion_submaps.end())});
+                                                     matching_result->insertion_result->insertion_submaps.end())}
+
+      );
     }
+    /// 回调函数,返回到外部
     if (local_slam_result_callback_) {
       local_slam_result_callback_(trajectory_id_,
                                   matching_result->time,
                                   matching_result->local_pose,
-                                  std::move(matching_result->range_data_in_local),
-                                  std::move(insertion_result));
+                                  std::move(matching_result->range_data_in_local),  // 局部点云
+                                  std::move(insertion_result)                       // submap信息 + 匹配信息
+      );
     }
   }
 
@@ -93,6 +100,7 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
 
   void AddSensorData(const std::string& sensor_id, const sensor::OdometryData& odometry_data) override {
     CHECK(odometry_data.pose.IsValid()) << odometry_data.pose;
+    /// 添加odometry到submap
     if (local_trajectory_builder_) {
       local_trajectory_builder_->AddOdometryData(odometry_data);
     }
@@ -110,16 +118,19 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
     if (fixed_frame_pose.pose.has_value()) {
       CHECK(fixed_frame_pose.pose.value().IsValid()) << fixed_frame_pose.pose.value();
     }
+    /// fixed直接添加到pgo
     pose_graph_->AddFixedFramePoseData(trajectory_id_, fixed_frame_pose);
   }
 
   void AddSensorData(const std::string& sensor_id, const sensor::LandmarkData& landmark_data) override {
+    /// landmark直接添加到pgo
     pose_graph_->AddLandmarkData(trajectory_id_, landmark_data);
   }
 
   void AddLocalSlamResultData(std::unique_ptr<mapping::LocalSlamResultData> local_slam_result_data) override {
     CHECK(!local_trajectory_builder_) << "Can't add LocalSlamResultData with "
                                          "local_trajectory_builder_ present.";
+    /// 外部过去pgo
     local_slam_result_data->AddToPoseGraph(trajectory_id_, pose_graph_);
   }
 
@@ -127,7 +138,7 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
   const int trajectory_id_;
   PoseGraph* const pose_graph_;
   std::unique_ptr<LocalTrajectoryBuilder> local_trajectory_builder_;
-  LocalSlamResultCallback local_slam_result_callback_;
+  LocalSlamResultCallback local_slam_result_callback_;  // 局部submap的回调函数
   absl::optional<MotionFilter> pose_graph_odometry_motion_filter_;
 };
 

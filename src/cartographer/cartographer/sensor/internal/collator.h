@@ -37,6 +37,7 @@ class Collator : public CollatorInterface {
   Collator(const Collator&) = delete;
   Collator& operator=(const Collator&) = delete;
 
+  /// 添加Trajectory进行消息回调
   void AddTrajectory(int trajectory_id,
                      const absl::flat_hash_set<std::string>& expected_sensor_ids,
                      const Callback& callback) override;

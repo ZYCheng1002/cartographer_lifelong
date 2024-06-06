@@ -26,7 +26,7 @@
 namespace cartographer {
 namespace mapping {
 
-static auto* kLocalSlamLatencyMetric = metrics::Gauge::Null();
+static auto* kLocalSlamLatencyMetric = metrics::Gauge::Null();  // 记录匹配间隔时间
 static auto* kLocalSlamRealTimeRatio = metrics::Gauge::Null();
 static auto* kLocalSlamCpuRealTimeRatio = metrics::Gauge::Null();
 static auto* kRealTimeCorrelativeScanMatcherScoreMetric = metrics::Histogram::Null();
@@ -112,11 +112,11 @@ std::unique_ptr<LocalTrajectoryBuilder2D::MatchingResult> LocalTrajectoryBuilder
   }
 
   CHECK(!synchronized_data.ranges.empty());
-  // TODO(gaschler): Check if this can strictly be 0.
   CHECK_LE(synchronized_data.ranges.back().point_time.time, 0.f);
   /// 首个点时间
   const common::Time time_first_point = time + common::FromSeconds(synchronized_data.ranges.front().point_time.time);
   if (time_first_point < extrapolator_->GetLastPoseTime()) {
+    /// 新的一帧时间不应该小于上一帧
     LOG(INFO) << "Extrapolator is still initializing.";
     return nullptr;
   }
@@ -125,56 +125,61 @@ std::unique_ptr<LocalTrajectoryBuilder2D::MatchingResult> LocalTrajectoryBuilder
   range_data_poses.reserve(synchronized_data.ranges.size());
   bool warned = false;
   for (const auto& range : synchronized_data.ranges) {
-    common::Time time_point = time + common::FromSeconds(range.point_time.time);
+    common::Time time_point = time + common::FromSeconds(range.point_time.time);  // 点时间辍
     if (time_point < extrapolator_->GetLastExtrapolatedTime()) {
+      /// 时间比上一帧预测时间小
       if (!warned) {
         LOG(ERROR) << "Timestamp of individual range data point jumps backwards from "
                    << extrapolator_->GetLastExtrapolatedTime() << " to " << time_point;
         warned = true;
       }
+      /// 时间赋值为上一帧预测时间
       time_point = extrapolator_->GetLastExtrapolatedTime();
     }
+    /// 匀速递推位姿, T_local_laser
     range_data_poses.push_back(extrapolator_->ExtrapolatePose(time_point).cast<float>());
   }
 
   if (num_accumulated_ == 0) {
-    // 'accumulated_range_data_.origin' is uninitialized until the last
-    // accumulation.
+    /// 'accumulated_range_data_.origin' is uninitialized until the last accumulation.
     accumulated_range_data_ = sensor::RangeData{{}, {}, {}};
   }
 
-  // Drop any returns below the minimum range and convert returns beyond the
-  // maximum range into misses.
+  /// Drop any returns below the minimum range and convert returns beyond the maximum range into misses.
   for (size_t i = 0; i < synchronized_data.ranges.size(); ++i) {
-    const sensor::TimedRangefinderPoint& hit = synchronized_data.ranges[i].point_time;
+    const sensor::TimedRangefinderPoint& hit = synchronized_data.ranges[i].point_time;  // 获取点的位置信息和时间信息
+    /// O_local = T_local_laser * O_laser 将传感器原点转到local坐标系
     const Eigen::Vector3f origin_in_local =
         range_data_poses[i] * synchronized_data.origins.at(synchronized_data.ranges[i].origin_index);
+    /// P_local = T_local_laser * P_laser 将传感器数据转到local坐标系
     sensor::RangefinderPoint hit_in_local = range_data_poses[i] * sensor::ToRangefinderPoint(hit);
+    /// 计算点到传感器的向量
     const Eigen::Vector3f delta = hit_in_local.position - origin_in_local;
+    /// 获取直线距离
     const float range = delta.norm();
     if (range >= options_.min_range()) {
       if (range <= options_.max_range()) {
+        /// 小于最远拘留有效值的数据点
         accumulated_range_data_.returns.push_back(hit_in_local);
       } else {
+        /// 无效点统一使用missing_data_ray_length代替
         hit_in_local.position = origin_in_local + options_.missing_data_ray_length() / range * delta;
         accumulated_range_data_.misses.push_back(hit_in_local);
       }
     }
   }
   ++num_accumulated_;
-
+  /// 累积数据提供后续匹配
   if (num_accumulated_ >= options_.num_accumulated_range_data()) {
     const common::Time current_sensor_time = synchronized_data.time;
     absl::optional<common::Duration> sensor_duration;
     if (last_sensor_time_.has_value()) {
-      sensor_duration = current_sensor_time - last_sensor_time_.value();
+      sensor_duration = current_sensor_time - last_sensor_time_.value();  // 传感器间隔时间
     }
     last_sensor_time_ = current_sensor_time;
     num_accumulated_ = 0;
     const transform::Rigid3d gravity_alignment =
         transform::Rigid3d::Rotation(extrapolator_->EstimateGravityOrientation(time));
-    // TODO(gaschler): This assumes that 'range_data_poses.back()' is at time
-    // 'time'.
     accumulated_range_data_.origin = range_data_poses.back().translation();
     return AddAccumulatedRangeData(
         time,
@@ -219,14 +224,16 @@ std::unique_ptr<LocalTrajectoryBuilder2D::MatchingResult> LocalTrajectoryBuilder
 
   sensor::RangeData range_data_in_local =
       TransformRangeData(gravity_aligned_range_data, transform::Embed3D(pose_estimate_2d->cast<float>()));
+  /// 添加到submap并且返回submap results
   std::unique_ptr<InsertionResult> insertion_result = InsertIntoSubmap(
       time, range_data_in_local, filtered_gravity_aligned_point_cloud, pose_estimate, gravity_alignment.rotation());
 
   const auto wall_time = std::chrono::steady_clock::now();
   if (last_wall_time_.has_value()) {
-    const auto wall_time_duration = wall_time - last_wall_time_.value();
+    const auto wall_time_duration = wall_time - last_wall_time_.value();  // 匹配间隔时间
     kLocalSlamLatencyMetric->Set(common::ToSeconds(wall_time_duration));
     if (sensor_duration.has_value()) {
+      /// 去除传感器时间
       kLocalSlamRealTimeRatio->Set(common::ToSeconds(sensor_duration.value()) / common::ToSeconds(wall_time_duration));
     }
   }
@@ -239,19 +246,21 @@ std::unique_ptr<LocalTrajectoryBuilder2D::MatchingResult> LocalTrajectoryBuilder
   }
   last_wall_time_ = wall_time;
   last_thread_cpu_time_seconds_ = thread_cpu_time_seconds;
+  /// 返回匹配结果
   return absl::make_unique<MatchingResult>(
       MatchingResult{time, pose_estimate, std::move(range_data_in_local), std::move(insertion_result)});
 }
 
 std::unique_ptr<LocalTrajectoryBuilder2D::InsertionResult> LocalTrajectoryBuilder2D::InsertIntoSubmap(
     const common::Time time,
-    const sensor::RangeData& range_data_in_local,
-    const sensor::PointCloud& filtered_gravity_aligned_point_cloud,
-    const transform::Rigid3d& pose_estimate,
+    const sensor::RangeData& range_data_in_local,                    // 局部地图中的range data
+    const sensor::PointCloud& filtered_gravity_aligned_point_cloud,  // 重力对齐的点云数据
+    const transform::Rigid3d& pose_estimate,                         // 匹配位姿
     const Eigen::Quaterniond& gravity_alignment) {
   if (motion_filter_.IsSimilar(time, pose_estimate)) {
     return nullptr;
   }
+  /// 插入submap并且获得submap
   std::vector<std::shared_ptr<const Submap2D>> insertion_submaps = active_submaps_.InsertRangeData(range_data_in_local);
   return absl::make_unique<InsertionResult>(
       InsertionResult{std::make_shared<const TrajectoryNode::Data>(
@@ -285,7 +294,7 @@ void LocalTrajectoryBuilder2D::InitializeExtrapolator(const common::Time time) {
     return;
   }
   CHECK(!options_.pose_extrapolator_options().use_imu_based());
-  // TODO(gaschler): Consider using InitializeWithImu as 3D does.
+
   extrapolator_ = absl::make_unique<PoseExtrapolator>(
       ::cartographer::common::FromSeconds(
           options_.pose_extrapolator_options().constant_velocity().pose_queue_duration()),

@@ -54,8 +54,9 @@ class MapBuilderInterface {
   MapBuilderInterface(const MapBuilderInterface&) = delete;
   MapBuilderInterface& operator=(const MapBuilderInterface&) = delete;
 
-  // Creates a new trajectory builder and returns its index.
   ///@brief 创建个新的slam系统并且返回id
+  ///@param expected_sensor_ids 对应传感器类型和对应的topic
+  ///@param local_slam_result_callback 局部地图的回调函数
   virtual int AddTrajectoryBuilder(
       const std::set<SensorId>& expected_sensor_ids,
       const proto::TrajectoryBuilderOptions& trajectory_options,

@@ -85,8 +85,9 @@ class OptimizationProblem2D : public OptimizationProblemInterface<NodeSpec2D, Su
   const std::map<int, PoseGraphInterface::TrajectoryData>& trajectory_data() const { return trajectory_data_; }
 
  private:
+  ///@brief 通过时间找到Odom数据(插值)
   std::unique_ptr<transform::Rigid3d> InterpolateOdometry(int trajectory_id, common::Time time) const;
-  // Computes the relative pose between two nodes based on odometry data.
+  ///@brief 计算Odom的相对位姿
   std::unique_ptr<transform::Rigid3d> CalculateOdometryBetweenNodes(int trajectory_id,
                                                                     const NodeSpec2D& first_node_data,
                                                                     const NodeSpec2D& second_node_data) const;

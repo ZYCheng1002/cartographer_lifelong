@@ -39,6 +39,9 @@ class MapBuilder : public MapBuilderInterface {
   MapBuilder(const MapBuilder&) = delete;
   MapBuilder& operator=(const MapBuilder&) = delete;
 
+  ///@brief 创建新的轨迹
+  ///@param expected_sensor_ids 传感器类型和其对应的topic
+  ///@param local_slam_result_callback 局部submap的回调函数
   int AddTrajectoryBuilder(const std::set<SensorId>& expected_sensor_ids,
                            const proto::TrajectoryBuilderOptions& trajectory_options,
                            LocalSlamResultCallback local_slam_result_callback) override;
@@ -72,11 +75,10 @@ class MapBuilder : public MapBuilderInterface {
 
  private:
   const proto::MapBuilderOptions options_;
-  common::ThreadPool thread_pool_;         // 线程池
-  std::unique_ptr<PoseGraph> pose_graph_;  // 后端优化
-
-  std::unique_ptr<sensor::CollatorInterface> sensor_collator_;
-  std::vector<std::unique_ptr<mapping::TrajectoryBuilderInterface>> trajectory_builders_;
+  common::ThreadPool thread_pool_;                                                         // 线程池
+  std::unique_ptr<PoseGraph> pose_graph_;                                                  // 后端优化
+  std::unique_ptr<sensor::CollatorInterface> sensor_collator_;                             // 数据收集处理器
+  std::vector<std::unique_ptr<mapping::TrajectoryBuilderInterface>> trajectory_builders_;  // 保存所有的map_builder
   std::vector<proto::TrajectoryBuilderOptionsWithSensorIds> all_trajectory_builder_options_;
 };
 

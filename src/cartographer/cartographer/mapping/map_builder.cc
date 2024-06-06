@@ -42,6 +42,7 @@ namespace {
 
 using mapping::proto::SerializedData;
 
+///@brief 获取距离传感器(laser)
 std::vector<std::string> SelectRangeSensorIds(const std::set<MapBuilder::SensorId>& expected_sensor_ids) {
   std::vector<std::string> range_sensor_ids;
   for (const MapBuilder::SensorId& sensor_id : expected_sensor_ids) {
@@ -98,6 +99,7 @@ MapBuilder::MapBuilder(const proto::MapBuilderOptions& options)
 int MapBuilder::AddTrajectoryBuilder(const std::set<SensorId>& expected_sensor_ids,
                                      const proto::TrajectoryBuilderOptions& trajectory_options,
                                      LocalSlamResultCallback local_slam_result_callback) {
+  /// 根据当前存在的map_builder返回计数
   const int trajectory_id = trajectory_builders_.size();
 
   absl::optional<MotionFilter> pose_graph_odometry_motion_filter;
@@ -108,7 +110,7 @@ int MapBuilder::AddTrajectoryBuilder(const std::set<SensorId>& expected_sensor_i
 
   if (options_.use_trajectory_builder_3d()) {
     /// 构建3D SLAM系统
-    std::unique_ptr<LocalTrajectoryBuilder3D> local_trajectory_builder;
+    std::unique_ptr<LocalTrajectoryBuilder3D> local_trajectory_builder;  // 局部submap
     if (trajectory_options.has_trajectory_builder_3d_options()) {
       local_trajectory_builder = absl::make_unique<LocalTrajectoryBuilder3D>(
           trajectory_options.trajectory_builder_3d_options(), SelectRangeSensorIds(expected_sensor_ids));

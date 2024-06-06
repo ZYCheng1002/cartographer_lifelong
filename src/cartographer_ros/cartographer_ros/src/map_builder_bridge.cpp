@@ -127,9 +127,11 @@ int MapBuilderBridge::AddTrajectory(
       });
   LOG(INFO) << "Added trajectory with ID '" << trajectory_id << "'.";
 
-  // Make sure there is no trajectory with 'trajectory_id' yet.
+  /// Make sure there is no trajectory with 'trajectory_id' yet.
   CHECK_EQ(sensor_bridges_.count(trajectory_id), 0);
   /// 创建传感器交互
+  /// step1:获取trajectory_builder
+  /// step2：将trajectory_builder传到sensor_bridge
   sensor_bridges_[trajectory_id] = absl::make_unique<SensorBridge>(trajectory_options.num_subdivisions_per_laser_scan,
                                                                    trajectory_options.tracking_frame,
                                                                    node_options_.lookup_transform_timeout_sec,

@@ -34,12 +34,13 @@
 namespace cartographer {
 namespace mapping {
 
-// Collates sensor data using a sensor::CollatorInterface, then passes it on to
-// a mapping::TrajectoryBuilderInterface which is common for 2D and 3D.
+///@class 收集传感器数据,分发到2D||3D SLAM, 即GlobalTrajectoryBuilder为其成员
 class CollatedTrajectoryBuilder : public TrajectoryBuilderInterface {
  public:
   using SensorId = TrajectoryBuilderInterface::SensorId;
 
+  ///@param sensor_collator 数据采集器
+  ///@param trajectory_id 传感器类型和对应的topic
   CollatedTrajectoryBuilder(const proto::TrajectoryBuilderOptions& trajectory_options,
                             sensor::CollatorInterface* sensor_collator,
                             int trajectory_id,
@@ -70,6 +71,7 @@ class CollatedTrajectoryBuilder : public TrajectoryBuilderInterface {
       AddData(sensor::MakeDispatchable(sensor_id, fixed_frame_pose_data));
       return;
     }
+    /// 调用GlobalTrajectory进行消息传播
     wrapped_trajectory_builder_->AddSensorData(sensor_id, fixed_frame_pose_data);
   }
 
@@ -87,14 +89,14 @@ class CollatedTrajectoryBuilder : public TrajectoryBuilderInterface {
 
  private:
   void AddData(std::unique_ptr<sensor::Data> data);
-
+  ///@brief 数据处理的回调函数
   void HandleCollatedSensorData(const std::string& sensor_id, std::unique_ptr<sensor::Data> data);
 
   sensor::CollatorInterface* const sensor_collator_;
   const bool collate_landmarks_;
   const bool collate_fixed_frame_;
   const int trajectory_id_;
-  std::unique_ptr<TrajectoryBuilderInterface> wrapped_trajectory_builder_;
+  std::unique_ptr<TrajectoryBuilderInterface> wrapped_trajectory_builder_; // 保存全局SLAM,GlobalTrajectoryBuilder
 
   // Time at which we last logged the rates of incoming sensor data.
   std::chrono::steady_clock::time_point last_logging_time_;

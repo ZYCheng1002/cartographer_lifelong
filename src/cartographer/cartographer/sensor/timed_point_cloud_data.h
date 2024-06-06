@@ -34,13 +34,13 @@ struct TimedPointCloudData {
 
 struct TimedPointCloudOriginData {
   struct RangeMeasurement {
-    TimedRangefinderPoint point_time;
-    float intensity;
+    TimedRangefinderPoint point_time;  // 点时间
+    float intensity;                   // 强度
     size_t origin_index;
   };
   common::Time time;
-  std::vector<Eigen::Vector3f> origins;
-  std::vector<RangeMeasurement> ranges;
+  std::vector<Eigen::Vector3f> origins;  // 原点信息
+  std::vector<RangeMeasurement> ranges;  // 激光距离信息
 };
 
 // Converts 'timed_point_cloud_data' to a proto::TimedPointCloudData.

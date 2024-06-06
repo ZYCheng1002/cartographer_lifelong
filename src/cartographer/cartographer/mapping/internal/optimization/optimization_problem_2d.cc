@@ -237,8 +237,7 @@ void OptimizationProblem2D::Solve(const std::vector<Constraint>& constraints,
   ceres::Problem::Options problem_options;
   ceres::Problem problem(problem_options);
 
-  // Set the starting point.
-  // TODO(hrapp): Move ceres data into SubmapSpec.
+  /// Set the starting point.
   MapById<SubmapId, std::array<double, 3>> C_submaps;
   MapById<NodeId, std::array<double, 3>> C_nodes;
   std::map<std::string, CeresPose> C_landmarks;
@@ -294,7 +293,7 @@ void OptimizationProblem2D::Solve(const std::vector<Constraint>& constraints,
         continue;
       }
 
-      // Add a relative pose constraint based on the odometry (if available).
+      /// 添加odom观测(双元边)
       std::unique_ptr<transform::Rigid3d> relative_odometry =
           CalculateOdometryBetweenNodes(trajectory_id, first_node_data, second_node_data);
       if (relative_odometry != nullptr) {
@@ -306,7 +305,7 @@ void OptimizationProblem2D::Solve(const std::vector<Constraint>& constraints,
             C_nodes.at(second_node_id).data());
       }
 
-      // Add a relative pose constraint based on consecutive local SLAM poses.
+      /// 添加里程计的观测(local pose, 双元边)
       const transform::Rigid3d relative_local_slam_pose =
           transform::Embed3D(first_node_data.local_pose_2d.inverse() * second_node_data.local_pose_2d);
       problem.AddResidualBlock(

@@ -48,8 +48,10 @@ CollatedTrajectoryBuilder::CollatedTrajectoryBuilder(
     if (sensor_id.type == SensorId::SensorType::FIXED_FRAME_POSE && !collate_fixed_frame_) {
       continue;
     }
+    /// 获取需要的topic
     expected_sensor_id_strings.insert(sensor_id.id);
   }
+  /// 添加回调函数
   sensor_collator_->AddTrajectory(trajectory_id,
                                   expected_sensor_id_strings,
                                   [this](const std::string& sensor_id, std::unique_ptr<sensor::Data> data) {

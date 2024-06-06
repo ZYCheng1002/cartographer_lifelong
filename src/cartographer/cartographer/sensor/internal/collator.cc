@@ -23,7 +23,9 @@ void Collator::AddTrajectory(const int trajectory_id,
                              const absl::flat_hash_set<std::string>& expected_sensor_ids,
                              const Callback& callback) {
   for (const auto& sensor_id : expected_sensor_ids) {
+    /// 遍历需要的传感器数据
     const auto queue_key = QueueKey{trajectory_id, sensor_id};
+    /// 增加回调函数
     queue_.AddQueue(queue_key,
                     [callback, sensor_id](std::unique_ptr<Data> data) { callback(sensor_id, std::move(data)); });
     queue_keys_[trajectory_id].push_back(queue_key);
@@ -38,6 +40,7 @@ void Collator::FinishTrajectory(const int trajectory_id) {
 
 void Collator::AddSensorData(const int trajectory_id, std::unique_ptr<Data> data) {
   QueueKey queue_key{trajectory_id, data->GetSensorId()};
+  /// 添加数据到列队,并且对其进行分发
   queue_.Add(std::move(queue_key), std::move(data));
 }
 

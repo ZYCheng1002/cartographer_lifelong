@@ -27,7 +27,7 @@
 
 namespace cartographer {
 namespace sensor {
-
+///@calss Collator,TrajectoryCollator的基类, 在map_builder中确定其类型.
 class CollatorInterface {
  public:
   using Callback = std::function<void(const std::string&, std::unique_ptr<Data>)>;
@@ -37,26 +37,23 @@ class CollatorInterface {
   CollatorInterface(const CollatorInterface&) = delete;
   CollatorInterface& operator=(const CollatorInterface&) = delete;
 
-  // Adds a trajectory to produce sorted sensor output for. Calls 'callback' for each collated sensor data.
+  ///@brief 添加轨迹以产生排序的传感器输出. 为每个整理的传感器数据调用回调。
   virtual void AddTrajectory(int trajectory_id,
                              const absl::flat_hash_set<std::string>& expected_sensor_ids,
                              const Callback& callback) = 0;
 
-  // Marks 'trajectory_id' as finished.
+  ///@brief 结束轨迹
   virtual void FinishTrajectory(int trajectory_id) = 0;
 
-  // Adds 'data' for 'trajectory_id' to be collated.
-  // 'data' must contain valid sensor data. Sensor packets with matching 'data.sensor_id_' must be added in time order.
+  ///@brief 增加传感器输入
   virtual void AddSensorData(int trajectory_id, std::unique_ptr<Data> data) = 0;
 
-  // Dispatches all queued sensor packets. May only be called once.
-  // AddSensorData may not be called after Flush.
+  /// Dispatches all queued sensor packets. May only be called once. AddSensorData may not be called after Flush.
   virtual void Flush() = 0;
 
-  // Must only be called if at least one unfinished trajectory exists. Returns
-  // the ID of the trajectory that needs more data before CollatorInterface is
-  // unblocked. Returns 'nullopt' for implementations that do not wait for a
-  // particular trajectory.
+  /// Must only be called if at least one unfinished trajectory exists. Returns the ID of the trajectory that needs more
+  /// data before CollatorInterface is unblocked. Returns 'nullopt' for implementations that do not wait for a
+  /// particular trajectory.
   virtual absl::optional<int> GetBlockingTrajectoryId() const = 0;
 };
 

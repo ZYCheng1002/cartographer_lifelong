@@ -13,14 +13,14 @@
 -- limitations under the License.
 
 TRAJECTORY_BUILDER_2D = {
-  use_imu_data = true,                          -- 是否使用imu数据                                                -- 是否使用imu数据
-  min_range = 0.,                               -- 最近距离                          -- laser最短距离
-  max_range = 30.,                              -- 最远距离                                -- laser最远距离
-  min_z = -0.8,                                 -- 最小高度                                          -- laser最低高度
-  max_z = 2.,                                   -- 最大高度                                          -- laser最高高速
-  missing_data_ray_length = 5.,                 -- 激光默认长度                                  --
-  num_accumulated_range_data = 1,               -- 单个node累计激光帧数                                    --
-  voxel_filter_size = 0.025,                    -- voxel leaf_size                                         -- 体素滤波分辨率
+  use_imu_data = true,                          -- 是否使用imu数据
+  min_range = 0.,                               -- 最近距离
+  max_range = 30.,                              -- 最远距离
+  min_z = -0.8,                                 -- 最小高度
+  max_z = 2.,                                   -- 最大高度
+  missing_data_ray_length = 5.,                 -- 激光默认长度
+  num_accumulated_range_data = 1,               -- 单次匹配累计激光帧数
+  voxel_filter_size = 0.025,                    -- voxel leaf_size
 
   adaptive_voxel_filter = {                     -- 自适应滤波
     max_length = 0.5,                           -- 栅格大小

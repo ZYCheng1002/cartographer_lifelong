@@ -69,6 +69,7 @@ void PoseExtrapolator::AddPose(const common::Time time, const transform::Rigid3d
   while (timed_pose_queue_.size() > 2 && timed_pose_queue_[1].time <= time - pose_queue_duration_) {
     timed_pose_queue_.pop_front();
   }
+  /// 通过位姿计算角速度和线速度
   UpdateVelocitiesFromPoses();
   AdvanceImuTracker(time, imu_tracker_.get());
   TrimImuData();
@@ -130,7 +131,7 @@ Eigen::Quaterniond PoseExtrapolator::EstimateGravityOrientation(const common::Ti
 
 void PoseExtrapolator::UpdateVelocitiesFromPoses() {
   if (timed_pose_queue_.size() < 2) {
-    // We need two poses to estimate velocities.
+    /// We need two poses to estimate velocities.
     return;
   }
   CHECK(!timed_pose_queue_.empty());

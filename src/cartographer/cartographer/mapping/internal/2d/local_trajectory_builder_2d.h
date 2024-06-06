@@ -38,20 +38,17 @@
 namespace cartographer {
 namespace mapping {
 
-// Wires up the local SLAM stack (i.e. pose extrapolator, scan matching, etc.)
-// without loop closure.
-// TODO(gaschler): Add test for this class similar to the 3D test.
+///@brief Wires up the local SLAM stack (i.e. pose extrapolator, scan matching, etc.) without loop closure.
 class LocalTrajectoryBuilder2D {
  public:
   struct InsertionResult {
-    std::shared_ptr<const TrajectoryNode::Data> constant_data;
-    std::vector<std::shared_ptr<const Submap2D>> insertion_submaps;
+    std::shared_ptr<const TrajectoryNode::Data> constant_data;  // 帧信息(时间,点云,重力对其的点云,匹配位姿)
+    std::vector<std::shared_ptr<const Submap2D>> insertion_submaps;  // 当前submap(1或2个)
   };
   struct MatchingResult {
     common::Time time;
     transform::Rigid3d local_pose;
     sensor::RangeData range_data_in_local;
-    // 'nullptr' if dropped by the motion filter.
     std::unique_ptr<const InsertionResult> insertion_result;
   };
 
@@ -106,8 +103,8 @@ class LocalTrajectoryBuilder2D {
   scan_matching::CeresScanMatcher2D ceres_scan_matcher_;                                // 激光匹配
   std::unique_ptr<PoseExtrapolator> extrapolator_;                                      // 位姿递推器
 
-  int num_accumulated_ = 0;
-  sensor::RangeData accumulated_range_data_;
+  int num_accumulated_ = 0;                   // 控制数据累积
+  sensor::RangeData accumulated_range_data_;  // 存储距离信息(laser)
 
   absl::optional<std::chrono::steady_clock::time_point> last_wall_time_;
   absl::optional<double> last_thread_cpu_time_seconds_;
