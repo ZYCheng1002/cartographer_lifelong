@@ -34,9 +34,8 @@ class RangeDataInserterInterface {
  public:
   virtual ~RangeDataInserterInterface() {}
 
-  // Inserts 'range_data' into 'grid'.
-  virtual void Insert(const sensor::RangeData& range_data,
-                      GridInterface* grid) const = 0;
+  /// Inserts 'range_data' into 'grid'.
+  virtual void Insert(const sensor::RangeData& range_data, GridInterface* grid) const = 0;
 };
 
 }  // namespace mapping

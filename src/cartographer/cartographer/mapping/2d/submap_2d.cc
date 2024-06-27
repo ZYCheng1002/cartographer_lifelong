@@ -35,9 +35,12 @@ namespace mapping {
 
 proto::SubmapsOptions2D CreateSubmapsOptions2D(common::LuaParameterDictionary* const parameter_dictionary) {
   proto::SubmapsOptions2D options;
+  /// submap中保存的range_data数目
   options.set_num_range_data(parameter_dictionary->GetNonNegativeInt("num_range_data"));
+  /// grid_map类型Pro或TSDF
   *options.mutable_grid_options_2d() =
       CreateGridOptions2D(parameter_dictionary->GetDictionary("grid_options_2d").get());
+  /// 插入range_data的概率值等
   *options.mutable_range_data_inserter_options() =
       CreateRangeDataInserterOptions(parameter_dictionary->GetDictionary("range_data_inserter").get());
 
@@ -45,6 +48,7 @@ proto::SubmapsOptions2D CreateSubmapsOptions2D(common::LuaParameterDictionary* c
   const proto::GridOptions2D_GridType& grid_type = options.grid_options_2d().grid_type();
   const proto::RangeDataInserterOptions_RangeDataInserterType& range_data_inserter_type =
       options.range_data_inserter_options().range_data_inserter_type();
+  /// 判断lua配置是否正确,PROBABILITY_GRID和TSDF分别对应不同的数据插入方式
   if (grid_type == proto::GridOptions2D::PROBABILITY_GRID &&
       range_data_inserter_type == proto::RangeDataInserterOptions::PROBABILITY_GRID_INSERTER_2D) {
     valid_range_data_inserter_grid_combination = true;
