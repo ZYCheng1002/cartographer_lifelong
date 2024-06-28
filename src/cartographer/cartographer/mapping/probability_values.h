@@ -45,6 +45,7 @@ inline uint16 BoundedFloatToValue(const float float_value,
 
 }  // namespace
 
+/// 计算占用几率比
 inline float Odds(float probability) {
   return probability / (1.f - probability);
 }

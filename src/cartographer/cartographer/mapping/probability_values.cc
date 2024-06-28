@@ -25,7 +25,7 @@ namespace {
 
 constexpr int kValueCount = 32768;
 
-// 0 is unknown, [1, 32767] maps to [lower_bound, upper_bound].
+/// 0 is unknown, [1, 32767] maps to [lower_bound, upper_bound].
 float SlowValueToBoundedFloat(const uint16 value, const uint16 unknown_value,
                               const float unknown_result,
                               const float lower_bound,
