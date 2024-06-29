@@ -27,10 +27,7 @@ bool isEqual(const Eigen::Array2i& lhs, const Eigen::Array2i& rhs) {
 }
 }  // namespace
 
-// Compute all pixels that contain some part of the line segment connecting
-// 'scaled_begin' and 'scaled_end'. 'scaled_begin' and 'scaled_end' are scaled
-// by 'subpixel_scale'. 'scaled_begin' and 'scaled_end' are expected to be
-// greater than zero. Return values are in pixels and not scaled.
+///@brief 射线mask，返回在该射线的所有像素点
 std::vector<Eigen::Array2i> RayToPixelMask(const Eigen::Array2i& scaled_begin,
                                            const Eigen::Array2i& scaled_end,
                                            int subpixel_scale) {

@@ -31,8 +31,7 @@ namespace cartographer {
 namespace mapping {
 namespace scan_matching {
 
-proto::CeresScanMatcherOptions2D CreateCeresScanMatcherOptions2D(
-    common::LuaParameterDictionary* parameter_dictionary);
+proto::CeresScanMatcherOptions2D CreateCeresScanMatcherOptions2D(common::LuaParameterDictionary* parameter_dictionary);
 
 // Align scans with an existing map using Ceres.
 class CeresScanMatcher2D {
@@ -43,12 +42,10 @@ class CeresScanMatcher2D {
   CeresScanMatcher2D(const CeresScanMatcher2D&) = delete;
   CeresScanMatcher2D& operator=(const CeresScanMatcher2D&) = delete;
 
-  // Aligns 'point_cloud' within the 'grid' given an
-  // 'initial_pose_estimate' and returns a 'pose_estimate' and the solver
-  // 'summary'.
   void Match(const Eigen::Vector2d& target_translation,
              const transform::Rigid2d& initial_pose_estimate,
-             const sensor::PointCloud& point_cloud, const Grid2D& grid,
+             const sensor::PointCloud& point_cloud,
+             const Grid2D& grid,
              transform::Rigid2d* pose_estimate,
              ceres::Solver::Summary* summary) const;
 

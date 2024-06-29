@@ -89,7 +89,7 @@ Grid2D::Grid2D(const proto::Grid2D& proto, ValueConversionTables* conversion_tab
   }
 }
 
-// Finishes the update sequence.
+/// 完成一次数据增加
 void Grid2D::FinishUpdate() {
   while (!update_indices_.empty()) {
     DCHECK_GE(correspondence_cost_cells_[update_indices_.back()], kUpdateMarker);

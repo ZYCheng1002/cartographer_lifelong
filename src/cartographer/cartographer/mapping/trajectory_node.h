@@ -45,20 +45,18 @@ struct TrajectoryNode {
   struct Data {
     common::Time time;
 
-    // Transform to approximately gravity align the tracking frame as
-    // determined by local SLAM.
+    /// Transform to approximately gravity align the tracking frame as determined by local SLAM.
     Eigen::Quaterniond gravity_alignment;
 
-    // Used for loop closure in 2D: voxel filtered returns in the
-    // 'gravity_alignment' frame.
+    /// Used for loop closure in 2D: voxel filtered returns in the 'gravity_alignment' frame.
     sensor::PointCloud filtered_gravity_aligned_point_cloud;
 
-    // Used for loop closure in 3D.
+    /// Used for loop closure in 3D.
     sensor::PointCloud high_resolution_point_cloud;
     sensor::PointCloud low_resolution_point_cloud;
     Eigen::VectorXf rotational_scan_matcher_histogram;
 
-    // The node pose in the local SLAM frame.
+    /// The node pose in the local SLAM frame.
     transform::Rigid3d local_pose;
   };
 

@@ -32,28 +32,25 @@
 namespace cartographer {
 namespace mapping {
 
-proto::ProbabilityGridRangeDataInserterOptions2D
-CreateProbabilityGridRangeDataInserterOptions2D(
+///@brief 充当全局函数的作用,创建ProbabilityGridRangeDataInserter2D,但是只返回option参数
+proto::ProbabilityGridRangeDataInserterOptions2D CreateProbabilityGridRangeDataInserterOptions2D(
     common::LuaParameterDictionary* parameter_dictionary);
 
+///@class 2d SLAM中默认Pro Grid使用其进行数据插入
 class ProbabilityGridRangeDataInserter2D : public RangeDataInserterInterface {
  public:
-  explicit ProbabilityGridRangeDataInserter2D(
-      const proto::ProbabilityGridRangeDataInserterOptions2D& options);
+  explicit ProbabilityGridRangeDataInserter2D(const proto::ProbabilityGridRangeDataInserterOptions2D& options);
 
-  ProbabilityGridRangeDataInserter2D(
-      const ProbabilityGridRangeDataInserter2D&) = delete;
-  ProbabilityGridRangeDataInserter2D& operator=(
-      const ProbabilityGridRangeDataInserter2D&) = delete;
+  ProbabilityGridRangeDataInserter2D(const ProbabilityGridRangeDataInserter2D&) = delete;
+  ProbabilityGridRangeDataInserter2D& operator=(const ProbabilityGridRangeDataInserter2D&) = delete;
 
-  // Inserts 'range_data' into 'probability_grid'.
-  virtual void Insert(const sensor::RangeData& range_data,
-                      GridInterface* grid) const override;
+  ///@brief Inserts 'range_data' into 'probability_grid'.
+  virtual void Insert(const sensor::RangeData& range_data, GridInterface* grid) const override;
 
  private:
   const proto::ProbabilityGridRangeDataInserterOptions2D options_;
-  const std::vector<uint16> hit_table_;
-  const std::vector<uint16> miss_table_;
+  const std::vector<uint16> hit_table_;   // 占据的索引(uint值)
+  const std::vector<uint16> miss_table_;  // 空闲的索引(uint值)
 };
 
 }  // namespace mapping

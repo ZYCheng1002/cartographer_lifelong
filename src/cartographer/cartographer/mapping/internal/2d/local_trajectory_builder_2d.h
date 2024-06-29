@@ -46,9 +46,9 @@ class LocalTrajectoryBuilder2D {
     std::vector<std::shared_ptr<const Submap2D>> insertion_submaps;  // 当前submap(1或2个)
   };
   struct MatchingResult {
-    common::Time time;
-    transform::Rigid3d local_pose;
-    sensor::RangeData range_data_in_local;
+    common::Time time;                      // 时间戳
+    transform::Rigid3d local_pose;          // 匹配位姿
+    sensor::RangeData range_data_in_local;  // 局部坐标系的data
     std::unique_ptr<const InsertionResult> insertion_result;
   };
 

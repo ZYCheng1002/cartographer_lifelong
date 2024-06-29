@@ -266,11 +266,11 @@ std::unique_ptr<LocalTrajectoryBuilder2D::InsertionResult> LocalTrajectoryBuilde
       InsertionResult{std::make_shared<const TrajectoryNode::Data>(
                           TrajectoryNode::Data{time,
                                                gravity_alignment,
-                                               filtered_gravity_aligned_point_cloud,
+                                               filtered_gravity_aligned_point_cloud,  // 点云数据
                                                {},  // 'high_resolution_point_cloud' is only used in 3D.
                                                {},  // 'low_resolution_point_cloud' is only used in 3D.
                                                {},  // 'rotational_scan_matcher_histogram' is only used in 3D.
-                                               pose_estimate}),
+                                               pose_estimate}),  // 位姿
                       std::move(insertion_submaps)});
 }
 

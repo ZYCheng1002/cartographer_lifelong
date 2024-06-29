@@ -181,9 +181,11 @@ std::unique_ptr<GridInterface> ActiveSubmaps2D::CreateGrid(const Eigen::Vector2f
   switch (options_.grid_options_2d().grid_type()) {
     case proto::GridOptions2D::PROBABILITY_GRID:
       return absl::make_unique<ProbabilityGrid>(
-          MapLimits(resolution,
-                    origin.cast<double>() + 0.5 * kInitialSubmapSize * resolution * Eigen::Vector2d::Ones(),
-                    CellLimits(kInitialSubmapSize, kInitialSubmapSize)),
+          MapLimits(
+              resolution,                                                                               // 分辨率
+              origin.cast<double>() + 0.5 * kInitialSubmapSize * resolution * Eigen::Vector2d::Ones(),  // 物理尺寸
+              CellLimits(kInitialSubmapSize, kInitialSubmapSize)                                        // 像素尺寸
+              ),
           &conversion_tables_);
     case proto::GridOptions2D::TSDF:
       return absl::make_unique<TSDF2D>(

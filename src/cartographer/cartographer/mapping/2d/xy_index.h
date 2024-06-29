@@ -31,6 +31,7 @@
 namespace cartographer {
 namespace mapping {
 
+///@struct 理解为像素坐标系的边界
 struct CellLimits {
   CellLimits() = default;
   CellLimits(int init_num_x_cells, int init_num_y_cells)

@@ -83,9 +83,8 @@ class PoseGraphInterface {
 
   enum class TrajectoryState { ACTIVE, FINISHED, FROZEN, DELETED };
 
-  using GlobalSlamOptimizationCallback =
-      std::function<void(const std::map<int /* trajectory_id */, SubmapId>&,
-                         const std::map<int /* trajectory_id */, NodeId>&)>;
+  using GlobalSlamOptimizationCallback = std::function<void(const std::map<int /* trajectory_id */, SubmapId>&,
+                                                            const std::map<int /* trajectory_id */, NodeId>&)>;
 
   PoseGraphInterface() {}
   virtual ~PoseGraphInterface() {}
@@ -110,22 +109,19 @@ class PoseGraphInterface {
   // Returns the transform converting data in the local map frame (i.e. the
   // continuous, non-loop-closed frame) into the global map frame (i.e. the
   // discontinuous, loop-closed frame).
-  virtual transform::Rigid3d GetLocalToGlobalTransform(
-      int trajectory_id) const = 0;
+  virtual transform::Rigid3d GetLocalToGlobalTransform(int trajectory_id) const = 0;
 
   // Returns the current optimized trajectories.
   virtual MapById<NodeId, TrajectoryNode> GetTrajectoryNodes() const = 0;
 
   // Returns the current optimized trajectory poses.
-  virtual MapById<NodeId, TrajectoryNodePose> GetTrajectoryNodePoses()
-      const = 0;
+  virtual MapById<NodeId, TrajectoryNodePose> GetTrajectoryNodePoses() const = 0;
 
   // Returns the states of trajectories.
   virtual std::map<int, TrajectoryState> GetTrajectoryStates() const = 0;
 
   // Returns the current optimized landmark poses.
-  virtual std::map<std::string, transform::Rigid3d> GetLandmarkPoses()
-      const = 0;
+  virtual std::map<std::string, transform::Rigid3d> GetLandmarkPoses() const = 0;
 
   // Sets global pose of landmark 'landmark_id' to given 'global_pose'.
   virtual void SetLandmarkPose(const std::string& landmark_id,
@@ -155,8 +151,7 @@ class PoseGraphInterface {
 
   // Sets the callback function that is invoked whenever the global optimization
   // problem is solved.
-  virtual void SetGlobalSlamOptimizationCallback(
-      GlobalSlamOptimizationCallback callback) = 0;
+  virtual void SetGlobalSlamOptimizationCallback(GlobalSlamOptimizationCallback callback) = 0;
 };
 
 }  // namespace mapping

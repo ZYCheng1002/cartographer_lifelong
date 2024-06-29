@@ -37,6 +37,7 @@ using uint64 = uint64_t;
 
 namespace common {
 
+/// float四舍五入到int
 inline int RoundToInt(const float x) { return std::lround(x); }
 
 inline int RoundToInt(const double x) { return std::lround(x); }

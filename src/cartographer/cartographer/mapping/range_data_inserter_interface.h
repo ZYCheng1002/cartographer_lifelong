@@ -27,14 +27,17 @@
 namespace cartographer {
 namespace mapping {
 
+///@brief 声明栅格数据插入全局函数
 proto::RangeDataInserterOptions CreateRangeDataInserterOptions(
     common::LuaParameterDictionary* const parameter_dictionary);
 
+///@class 数据插入基类
 class RangeDataInserterInterface {
  public:
   virtual ~RangeDataInserterInterface() {}
 
-  /// Inserts 'range_data' into 'grid'.
+  ///@brief 插入数据
+  ///@param grid 此处使用基类,表示栅格地图形式
   virtual void Insert(const sensor::RangeData& range_data, GridInterface* grid) const = 0;
 };
 

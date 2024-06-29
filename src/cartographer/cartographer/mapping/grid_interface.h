@@ -23,8 +23,8 @@
 namespace cartographer {
 namespace mapping {
 
+///@class 栅格地图基类:grid 2d
 class GridInterface {
-  // todo(kdaun) move mutual functions of Grid2D/3D here
  public:
   virtual ~GridInterface() {}
 };

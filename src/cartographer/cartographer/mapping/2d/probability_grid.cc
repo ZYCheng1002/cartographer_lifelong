@@ -49,16 +49,20 @@ void ProbabilityGrid::SetProbability(const Eigen::Array2i& cell_index, const flo
 //
 // If this is the first call to ApplyOdds() for the specified cell, its value
 // will be set to probability corresponding to 'odds'.
+///@brief 栅格更新
+///@param table 概率查找表
 bool ProbabilityGrid::ApplyLookupTable(const Eigen::Array2i& cell_index, const std::vector<uint16>& table) {
   DCHECK_EQ(table.size(), kUpdateMarker);
-  const int flat_index = ToFlatIndex(cell_index);
-  uint16* cell = &(*mutable_correspondence_cost_cells())[flat_index];
+  const int flat_index = ToFlatIndex(cell_index);  // 二维转一维位置
+  uint16* cell = &(*mutable_correspondence_cost_cells())[flat_index];  // 栅格位置
   if (*cell >= kUpdateMarker) {
     return false;
   }
   mutable_update_indices()->push_back(flat_index);
+  /// 更新栅格值
   *cell = table[*cell];
   DCHECK_GE(*cell, kUpdateMarker);
+  /// 更新包围框
   mutable_known_cells_box()->extend(cell_index.matrix());
   return true;
 }

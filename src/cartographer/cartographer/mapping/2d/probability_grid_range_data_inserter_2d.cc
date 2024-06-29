@@ -55,6 +55,7 @@ void CastRays(const sensor::RangeData& range_data,
               const std::vector<uint16>& miss_table,
               const bool insert_free_space,
               ProbabilityGrid* probability_grid) {
+  /// 通过laser坐标和range_data获取包围狂
   GrowAsNeeded(range_data, probability_grid);
 
   const MapLimits& limits = probability_grid->limits();
@@ -64,27 +65,29 @@ void CastRays(const sensor::RangeData& range_data,
       limits.max(),
       CellLimits(limits.cell_limits().num_x_cells * kSubpixelScale, limits.cell_limits().num_y_cells * kSubpixelScale));
   const Eigen::Array2i begin = superscaled_limits.GetCellIndex(range_data.origin.head<2>());  // T_local_lidar
-  // Compute and add the end points.
   std::vector<Eigen::Array2i> ends;
   ends.reserve(range_data.returns.size());
+  /// 遍历所有的占据点
   for (const sensor::RangefinderPoint& hit : range_data.returns) {
-    ends.push_back(superscaled_limits.GetCellIndex(hit.position.head<2>()));
+    ends.push_back(superscaled_limits.GetCellIndex(hit.position.head<2>()));  // 终点坐标
+    /// 栅格更新:刷黑
     probability_grid->ApplyLookupTable(ends.back() / kSubpixelScale, hit_table);
   }
-
+  /// 是否插入空闲区域
   if (!insert_free_space) {
     return;
   }
 
-  // Now add the misses.
+  /// 射线刷白
   for (const Eigen::Array2i& end : ends) {
     std::vector<Eigen::Array2i> ray = RayToPixelMask(begin, end, kSubpixelScale);
     for (const Eigen::Array2i& cell_index : ray) {
+      /// 栅格更新:刷白
       probability_grid->ApplyLookupTable(cell_index, miss_table);
     }
   }
 
-  // Finally, compute and add empty rays based on misses in the range data.
+  /// misses点刷白
   for (const sensor::RangefinderPoint& missing_echo : range_data.misses) {
     std::vector<Eigen::Array2i> ray =
         RayToPixelMask(begin, superscaled_limits.GetCellIndex(missing_echo.position.head<2>()), kSubpixelScale);
@@ -97,9 +100,10 @@ void CastRays(const sensor::RangeData& range_data,
 
 proto::ProbabilityGridRangeDataInserterOptions2D CreateProbabilityGridRangeDataInserterOptions2D(
     common::LuaParameterDictionary* parameter_dictionary) {
+  /// 获取相关option参数
   proto::ProbabilityGridRangeDataInserterOptions2D options;
-  options.set_hit_probability(parameter_dictionary->GetDouble("hit_probability"));
-  options.set_miss_probability(parameter_dictionary->GetDouble("miss_probability"));
+  options.set_hit_probability(parameter_dictionary->GetDouble("hit_probability"));    // 占用概率
+  options.set_miss_probability(parameter_dictionary->GetDouble("miss_probability"));  // 空闲概率
   options.set_insert_free_space(
       parameter_dictionary->HasKey("insert_free_space") ? parameter_dictionary->GetBool("insert_free_space") : true);
   CHECK_GT(options.hit_probability(), 0.5);
@@ -114,6 +118,7 @@ ProbabilityGridRangeDataInserter2D::ProbabilityGridRangeDataInserter2D(
       miss_table_(ComputeLookupTableToApplyCorrespondenceCostOdds(Odds(options.miss_probability()))) {}
 
 void ProbabilityGridRangeDataInserter2D::Insert(const sensor::RangeData& range_data, GridInterface* const grid) const {
+  /// 做个上行转换
   ProbabilityGrid* const probability_grid = static_cast<ProbabilityGrid*>(grid);
   CHECK(probability_grid != nullptr);
   /// By not finishing the update after hits are inserted,

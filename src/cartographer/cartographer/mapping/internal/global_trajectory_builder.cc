@@ -59,10 +59,9 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
     std::unique_ptr<typename LocalTrajectoryBuilder::MatchingResult> matching_result =
         local_trajectory_builder_->AddRangeData(sensor_id, timed_point_cloud_data);
     if (matching_result == nullptr) {
-      /// The range data has not been fully accumulated yet.
       return;
     }
-    kLocalSlamMatchingResults->Increment();
+    kLocalSlamMatchingResults->Increment();  // 精度评价?
     std::unique_ptr<InsertionResult> insertion_result;
     if (matching_result->insertion_result != nullptr) {
       kLocalSlamInsertionResults->Increment();
@@ -71,12 +70,13 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
                                           matching_result->insertion_result->insertion_submaps  // submap信息
       );
       CHECK_EQ(node_id.trajectory_id, trajectory_id_);
+      /// 未加入到pgo的前端信息
       insertion_result = absl::make_unique<InsertionResult>(InsertionResult{
           node_id,
           matching_result->insertion_result->constant_data,  // 匹配信息
-          // 匹配里程计submap
           std::vector<std::shared_ptr<const Submap>>(matching_result->insertion_result->insertion_submaps.begin(),
                                                      matching_result->insertion_result->insertion_submaps.end())}
+                                                            // 匹配里程计submap
 
       );
     }

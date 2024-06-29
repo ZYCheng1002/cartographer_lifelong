@@ -81,7 +81,7 @@ class MapLimits {
 
  private:
   double resolution_;       // 分辨率
-  Eigen::Vector2d max_;     // 地图最大值
+  Eigen::Vector2d max_;     // 地图最大值(根据T_local_laser 增加物理尺寸获得)
   CellLimits cell_limits_;  // x y的格子数
 };
 

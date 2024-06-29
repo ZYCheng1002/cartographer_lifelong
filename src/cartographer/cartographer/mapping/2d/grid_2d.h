@@ -109,7 +109,7 @@ class Grid2D : public GridInterface {
   std::vector<uint16> correspondence_cost_cells_;  // 保存栅格代驾值
   float min_correspondence_cost_;                  // 最小代价
   float max_correspondence_cost_;                  // 最大代价
-  std::vector<int> update_indices_;
+  std::vector<int> update_indices_;                // 更新的索引
 
   // Bounding box of known cells to efficiently compute cropping limits.
   Eigen::AlignedBox2i known_cells_box_;
